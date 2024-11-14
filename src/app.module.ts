@@ -19,6 +19,7 @@ import { JwtAuthModule } from "./common/auth/jwt.module";
             synchronize: true, // Use cautiously in production
         }),
         JwtAuthModule,
+        ClientDeviceModule,
     ],
 })
 export class AppModule {}
