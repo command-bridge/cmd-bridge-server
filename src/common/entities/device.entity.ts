@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity("clients")
-export class ClientEntity {
+@Entity("devices")
+export class DeviceEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -9,5 +9,5 @@ export class ClientEntity {
     device_hash: string;
 
     @Column({ default: true })
-    isActive: boolean;
+    is_active: boolean;
 }
