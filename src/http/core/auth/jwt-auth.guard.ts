@@ -5,6 +5,10 @@ import {
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { JwtAuthService } from "../../../common/auth/jwt-auth.service";
+import { Request } from "express";
+import { JwtTokenPayloadDto } from "src/common/auth/jwt-token-payload.dto";
+
+type RequestWithToken = Request & { payload: JwtTokenPayloadDto };
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard("jwt") {
@@ -13,7 +17,7 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
     }
 
     canActivate(context: ExecutionContext): boolean {
-        const request = context.switchToHttp().getRequest();
+        const request = context.switchToHttp().getRequest<RequestWithToken>();
         const authHeader = request.headers.authorization;
         const token = authHeader && authHeader.split(" ")[1];
 
@@ -21,8 +25,9 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
             throw new UnauthorizedException("Missing token");
         }
 
-        const user = this.jwtAuthService.validateToken(token);
-        request.user = user;
+        const payload = this.jwtAuthService.validateToken(token);
+        request.payload = payload;
+
         return true;
     }
 }
