@@ -6,6 +6,9 @@ export class MemoryDeviceActivation {
     id: number;
 
     @Column()
+    environment_id: number;
+
+    @Column()
     activation_code: string;
 
     @Column()

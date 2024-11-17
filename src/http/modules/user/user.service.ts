@@ -3,7 +3,7 @@ import { UserLoginDto } from "./user-login.dto";
 import { Repository } from "typeorm";
 import { UnauthorizedException } from "@nestjs/common";
 import { JwtAuthService } from "@common/auth/jwt-auth.service";
-import { UserEntity } from "@common/entities/user.entity";
+import { UserEntity } from "@common/entities/admin/user.entity";
 import {
     comparePassword,
     hashPassword,
@@ -23,7 +23,7 @@ export class UserService {
         console.log(await hashPassword(password));
 
         const user = await this.userRepository.findOne({
-            select: ["password"],
+            select: ["password", "environment_id"],
             where: { user_name },
         });
 
@@ -34,6 +34,7 @@ export class UserService {
         return {
             token: this.jwtService.generateToken({
                 id: user.id,
+                environment_id: user.environment_id,
                 type: JwtTokenType.User,
             }),
         };

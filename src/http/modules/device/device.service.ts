@@ -1,37 +1,45 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { DeviceActivationDto } from "./device-activation.dto";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
 import { JwtAuthService } from "@common/auth/jwt-auth.service";
-import { DeviceEntity } from "@common/entities/device.entity";
 import { JwtTokenType } from "@common/auth/jwt-token-type.enum";
 import { MemoryDeviceActivationRepository } from "@common/shared-memory/memory-repositories/device-activation.repostiory";
+import { DeviceEntity } from "@common/entities/environment/device.entity";
+import { ConnectionRepositoryService } from "@common/connections/connection-repository.service";
 
 @Injectable()
 export class DeviceService {
     constructor(
         private readonly jwtService: JwtAuthService,
-        @InjectRepository(DeviceEntity)
-        private readonly deviceRepository: Repository<DeviceEntity>,
-        private readonly memoryActivationRepository: MemoryDeviceActivationRepository
+        private readonly connectionRepositoryService: ConnectionRepositoryService,
+        private readonly memoryActivationRepository: MemoryDeviceActivationRepository,
     ) {}
 
     public async activate(deviceActivationDto: DeviceActivationDto) {
-        if (
-            !(await this.memoryActivationRepository.validate(
+        const memoryDeviceActivation =
+            await this.memoryActivationRepository.validate(
                 deviceActivationDto.activation_code,
-            ))
-        ) {
+            );
+
+        if (!memoryDeviceActivation) {
             throw new BadRequestException("Activation token is invalid");
         }
 
-        const client = await this.deviceRepository.save(
+        const { environment_id } = memoryDeviceActivation;
+
+        const deviceRepository =
+            await this.connectionRepositoryService.getRepository(
+                DeviceEntity,
+                environment_id,
+            );
+
+        const client = await deviceRepository.save(
             deviceActivationDto as unknown as DeviceEntity,
         );
 
         return {
             token: this.jwtService.generateToken({
                 id: client.id,
+                environment_id,
                 type: JwtTokenType.Device,
             }),
         };

@@ -16,4 +16,7 @@ export class UserEntity {
 
     @Column({ default: 0 })
     group_id: number;
+
+    @Column()
+    environment_id: number;
 }

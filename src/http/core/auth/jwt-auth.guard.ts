@@ -8,7 +8,7 @@ import { JwtAuthService } from "../../../common/auth/jwt-auth.service";
 import { Request } from "express";
 import { JwtTokenPayloadDto } from "src/common/auth/jwt-token-payload.dto";
 
-type RequestWithToken = Request & { payload: JwtTokenPayloadDto };
+export type RequestWithPayload = Request & { payload: JwtTokenPayloadDto };
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard("jwt") {
@@ -17,7 +17,7 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
     }
 
     canActivate(context: ExecutionContext): boolean {
-        const request = context.switchToHttp().getRequest<RequestWithToken>();
+        const request = context.switchToHttp().getRequest<RequestWithPayload>();
         const authHeader = request.headers.authorization;
         const token = authHeader && authHeader.split(" ")[1];
 

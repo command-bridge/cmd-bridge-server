@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 import { MemoryDeviceActivationRepository } from "./memory-repositories/device-activation.repostiory";
-import { MemoryDeviceActivation } from "./memory-entities/device-activation.entity";
+import { MemoryDeviceActivation } from "../entities/admin/memory-device-activation.entity";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
 @Module({
