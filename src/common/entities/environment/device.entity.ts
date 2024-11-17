@@ -8,6 +8,9 @@ export class DeviceEntity {
     @Column()
     device_hash: string;
 
+    @Column()
+    integration_token: string;
+
     @Column({ default: true })
     is_active: boolean;
 }

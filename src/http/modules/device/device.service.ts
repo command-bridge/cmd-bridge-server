@@ -1,17 +1,24 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { DeviceActivationDto } from "./device-activation.dto";
+import { DeviceActivationDto, DeviceLoginDto } from "./device.dto";
 import { JwtAuthService } from "@common/auth/jwt-auth.service";
-import { JwtTokenType } from "@common/auth/jwt-token-type.enum";
 import { MemoryDeviceActivationRepository } from "@common/shared-memory/memory-repositories/device-activation.repostiory";
 import { DeviceEntity } from "@common/entities/environment/device.entity";
 import { ConnectionRepositoryService } from "@common/connections/connection-repository.service";
+import { generateIntegrationToken } from "@common/helpers/generate-integration-token.helper";
+import { hashString } from "@common/helpers/hash-string.helper";
+import { Repository } from "typeorm";
+import { EnvironmentEntity } from "@common/entities/admin/environment.entity";
+import { InjectRepository } from "@nestjs/typeorm";
+import { JwtTokenType } from "@common/auth/jwt-token-type.enum";
 
 @Injectable()
 export class DeviceService {
     constructor(
-        private readonly jwtService: JwtAuthService,
         private readonly connectionRepositoryService: ConnectionRepositoryService,
         private readonly memoryActivationRepository: MemoryDeviceActivationRepository,
+        @InjectRepository(EnvironmentEntity)
+        private readonly environmentRepository: Repository<EnvironmentEntity>,
+        private readonly jwtAuthService: JwtAuthService,
     ) {}
 
     public async activate(deviceActivationDto: DeviceActivationDto) {
@@ -32,20 +39,53 @@ export class DeviceService {
                 environment_id,
             );
 
-        const client = await deviceRepository.save(
-            deviceActivationDto as unknown as DeviceEntity,
-        );
+        const token = generateIntegrationToken();
+
+        const device = {
+            device_hash: deviceActivationDto.device_hash,
+            integration_token: token.hash,
+        } as DeviceEntity;
+
+        await deviceRepository.save(device);
 
         return {
-            token: this.jwtService.generateToken({
-                id: client.id,
-                environment_id,
-                type: JwtTokenType.Device,
-            }),
+            integration_token: token.integration_token,
+            environment: hashString(environment_id.toString()),
         };
     }
 
     public create() {
         return this.memoryActivationRepository.create();
+    }
+
+    public async login(deviceLoginDto: DeviceLoginDto) {
+        const {
+            environment: hashed_id,
+            device_hash,
+            integration_token,
+        } = deviceLoginDto;
+
+        const environment = await this.environmentRepository.findOneByOrFail({
+            hashed_id,
+        });
+
+        const deviceRepository =
+            await this.connectionRepositoryService.getRepository(
+                DeviceEntity,
+                environment.id,
+            );
+
+        const device = await deviceRepository.findOneByOrFail({
+            device_hash,
+            integration_token: hashString(integration_token),
+        });
+
+        return {
+            token: this.jwtAuthService.generateToken({
+                environment_id: environment.id,
+                id: device.id,
+                type: JwtTokenType.Device,
+            }),
+        };
     }
 }

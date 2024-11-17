@@ -6,13 +6,19 @@ import {
     UsePipes,
     ValidationPipe,
 } from "@nestjs/common";
-import { DeviceActivationDto } from "./device-activation.dto";
+import { DeviceActivationDto, DeviceLoginDto } from "./device.dto";
 import { DeviceService } from "./device.service";
 import { JwtAuthGuard } from "@http/core/auth/jwt-auth.guard";
 
 @Controller("device")
 export class DeviceController {
     constructor(private readonly deviceService: DeviceService) {}
+
+    @Post("login")
+    @UsePipes(new ValidationPipe({ transform: true }))
+    public login(@Body() deviceLoginDto: DeviceLoginDto) {
+        return this.deviceService.login(deviceLoginDto);
+    }
 
     @Post("activate")
     @UsePipes(new ValidationPipe({ transform: true }))

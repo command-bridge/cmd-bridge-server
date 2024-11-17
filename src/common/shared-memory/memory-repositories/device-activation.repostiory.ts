@@ -15,7 +15,12 @@ export class MemoryDeviceActivationRepository {
     ) {}
 
     public create() {
-        const activation_code = randomString(6);
+        const activation_code = randomString(6, {
+            lowerCase: false,
+            upperCase: false,
+            numbers: true,
+            specialCharacters: false,
+        });
 
         return this.memoryDeviceActivationRepository.save({
             activation_code,

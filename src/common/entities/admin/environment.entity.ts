@@ -25,4 +25,7 @@ export class EnvironmentEntity {
 
     @Column()
     db_database: string;
+
+    @Column()
+    hashed_id: string;
 }
