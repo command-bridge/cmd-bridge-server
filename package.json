@@ -12,7 +12,8 @@
         "build": "npm run build:backend",
         "build:backend": "npm --prefix backend run build",
         "lint": "npm run lint:backend",
-        "lint:backend": "npm --prefix backend run lint"
+        "lint:backend": "npm --prefix backend run lint",
+        "configure": "npm --prefix frontend run configure"
     },
     "devDependencies": {
         "eslint": "^8.0.0",
