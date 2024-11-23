@@ -3,11 +3,12 @@
     "private": true,
     "version": "1.0.0",
     "workspaces": [
-        "backend"
+        "backend", "frontend"
     ],
     "scripts": {
-        "start": "npm run start:backend",
+        "start": "npm run start:backend & npm run start:frontend",
         "start:backend": "npm --prefix backend run start:dev",
+        "start:frontend": "npm --prefix frontend run serve",
         "build": "npm run build:backend",
         "build:backend": "npm --prefix backend run build",
         "lint": "npm run lint:backend",
