@@ -1,0 +1,1 @@
+export type RouteItem = Record<string, () => Promise<typeof import('*.vue')>>;
