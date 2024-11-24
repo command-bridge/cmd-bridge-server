@@ -182,9 +182,11 @@ export default {
       ],
       memoryEngines: [ 
         { text: 'Database', value: 'database' },
+        /*
         { text: 'In Memory', value: 'in_memory' },
         { text: 'Redis', value: 'redis' },
-        { text: 'MongoDB', value: 'mongodb' } 
+        { text: 'MongoDB', value: 'mongodb' }
+         */
       ],
       config: {
         // Environment Section
