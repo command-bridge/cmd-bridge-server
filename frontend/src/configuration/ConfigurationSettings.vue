@@ -262,7 +262,7 @@ export default {
         ADMIN_PASSWORD: '',
         // Server configuration
         APPLICATION_NAME: 'CommandBridge',
-        SERVER_BACKEND_URL: '',
+        SERVER_BACKEND_URL: 'http://localhost:3000',
         SERVER_MEMORY_ENGINE: '',
       };
     },
