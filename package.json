@@ -3,7 +3,8 @@
     "private": true,
     "version": "1.0.0",
     "workspaces": [
-        "backend", "frontend"
+        "backend",
+        "frontend"
     ],
     "scripts": {
         "start": "npm run start:backend & npm run start:frontend",
@@ -13,13 +14,15 @@
         "build:backend": "npm --prefix backend run build",
         "lint": "npm run lint:backend",
         "lint:backend": "npm --prefix backend run lint",
-        "configure": "npm --prefix frontend run configure"
+        "configure:frontend": "npm --prefix frontend run configure",
+        "configure:backend": "npm --prefix backend run configure",
+        "configure": "concurrently \"npm run configure:backend\" \"npm run configure:frontend\""
     },
     "devDependencies": {
+        "concurrently": "^8.0.1",
         "eslint": "^8.0.0",
         "eslint-config-prettier": "^9.0.0",
         "eslint-plugin-prettier": "^5.0.0",
-        "prettier": "^3.0.0",
-        "concurrently": "^8.0.1"
+        "prettier": "^3.0.0"
     }
 }
