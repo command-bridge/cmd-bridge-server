@@ -1,5 +1,5 @@
 import { createApp } from 'vue';
-import App from './Configuration.vue';
+import ConfigurationSettings from './ConfigurationSettings.vue';
 
 import { createVuetify } from 'vuetify';
 import 'vuetify/styles'; // Global Vuetify styles
@@ -11,6 +11,6 @@ const vuetify = createVuetify({
   directives,
 });
 
-const app = createApp(App);
+const app = createApp(ConfigurationSettings);
 app.use(vuetify);
 app.mount('#app');
