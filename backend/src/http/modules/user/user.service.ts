@@ -20,8 +20,6 @@ export class UserService {
     public async login(userLoginDto: UserLoginDto) {
         const { user_name, password } = userLoginDto;
 
-        console.log(await hashPassword(password));
-
         const user = await this.userRepository.findOne({
             select: ["password", "environment_id"],
             where: { user_name },
