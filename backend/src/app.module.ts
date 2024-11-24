@@ -12,7 +12,7 @@ import { ConnectionsModule } from "@common/connections/connections.module";
     imports: [
         ConfigModule.forRoot(), // Load environment variables
         TypeOrmModule.forRoot({
-            type: "mysql",
+            type: (process.env.DB_TYPE as any) || "mysql",
             host: process.env.DB_HOST || "localhost",
             port: Number(process.env.DB_PORT) || 3306,
             username: process.env.DB_USERNAME || "root",

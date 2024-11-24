@@ -11,7 +11,7 @@ export class EnvironmentEntity {
     @Column()
     db_host: string;
 
-    @Column()
+    @Column({ nullable: true })
     db_port: number;
 
     @Column()

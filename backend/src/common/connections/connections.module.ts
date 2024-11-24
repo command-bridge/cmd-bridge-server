@@ -12,6 +12,6 @@ import { TypeOrmModule } from "@nestjs/typeorm";
         ConnectionConfigService,
     ],
     imports: [TypeOrmModule.forFeature([EnvironmentEntity])],
-    exports: [ConnectionRepositoryService],
+    exports: [ConnectionRepositoryService, ConnectionManagerService],
 })
 export class ConnectionsModule {}
