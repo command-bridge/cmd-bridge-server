@@ -34,6 +34,8 @@ type ConnectionTestResult = {
     errorMessage?: string;
 };
 
+const DEFAULT_COMMAND_BRIDGE_DB_NAME = "command-bridge";
+
 @Injectable()
 export class ConfigurationService {
     private adminConnection: DataSource;
@@ -73,10 +75,10 @@ export class ConfigurationService {
             "APPLICATION_NAME",
         ] as (keyof ConfigurationDto)[];
 
-        let envContent = "";
+        let envContent = `DB_NAME=${DEFAULT_COMMAND_BRIDGE_DB_NAME}\n`;
 
         for (const key of configsToPersist) {
-            envContent += `${configs[key]}\n`;
+            envContent += `${key}=${configs[key]}\n`;
         }
 
         const envPath = join(process.cwd(), ".env"); // Adjust this path as needed
@@ -125,7 +127,7 @@ export class ConfigurationService {
         try {
             const dbName = quoteSqlIdentifier(
                 this.adminConnection,
-                "command-bridge",
+                DEFAULT_COMMAND_BRIDGE_DB_NAME,
             );
 
             await this.adminConnection.query(`CREATE DATABASE ${dbName}`);
