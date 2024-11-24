@@ -10,10 +10,13 @@
     "configure": "VUE_APP_CONFIGURATION_MODE=true vue-cli-service serve --mode configure"
   },
   "dependencies": {
+    "@vitejs/plugin-vue": "^5.2.0",
+    "@vue/compiler-sfc": "^3.5.13",
     "core-js": "^3.8.3",
     "sass": "^1.81.0",
     "sass-loader": "^16.0.3",
-    "vue": "^3.2.13",
+    "vue": "^3.5.13",
+    "vue-router": "^4.4.5",
     "vuetify": "^3.7.0-beta.1"
   },
   "devDependencies": {
@@ -27,22 +30,9 @@
     "@vue/cli-plugin-eslint": "~5.0.0",
     "@vue/cli-plugin-typescript": "^5.0.8",
     "@vue/cli-service": "~5.0.0",
-    "eslint-plugin-vue": "^8.0.3",
+    "eslint": "^8.57.1",
+    "eslint-plugin-vue": "^8.7.1",
     "typescript": "^5.7.2"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/vue3-essential",
-      "eslint:recommended"
-    ],
-    "parserOptions": {
-      "parser": "@babel/eslint-parser"
-    },
-    "rules": {}
   },
   "browserslist": [
     "> 1%",
