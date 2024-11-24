@@ -24,7 +24,7 @@ export function IsValidName(validationOptions?: ValidationOptions) {
                     return typeof validationOptions?.message === "function"
                         ? validationOptions.message(args)
                         : validationOptions?.message ||
-                              "Invalid name. Names can only include letters, spaces, hyphens, and apostrophes.";
+                              `${propertyName} Invalid name. Names can only include letters, spaces, hyphens, and apostrophes.`;
                 },
             },
         });
