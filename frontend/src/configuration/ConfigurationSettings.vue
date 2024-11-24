@@ -14,18 +14,21 @@
               label="Database Engine"
               outlined
               required
+              :error-messages="errors.DB_TYPE"
             />
             <v-text-field
               v-model="config.DB_URL"
               label="Database URL"
               outlined
               required
+              :error-messages="errors.DB_URL"
             />
             <v-text-field
               v-model="config.DB_USERNAME"
               label="Database User"
               outlined
               required
+              :error-messages="errors.DB_USERNAME"
             />
             <v-text-field
               v-model="config.DB_PASSWORD"
@@ -33,6 +36,7 @@
               type="password"
               outlined
               required
+              :error-messages="errors.DB_PASSWORD"
             />
           </v-card>
         </template>
@@ -46,12 +50,14 @@
               label="Environment Databases Prefix"
               outlined
               required
+              :error-messages="errors.ENVIRONMENT_PREFIX"
             />
             <v-text-field
               v-model="config.ENVIRONMENT_NAME"
               label="Environment Name"
               outlined
               required
+              :error-messages="errors.ENVIRONMENT_NAME"
             />
             <v-switch
               v-model="config.ENVIRONMENT_USE_DEFAULT_DB_CREDENTIALS"
@@ -71,17 +77,20 @@
                 v-model="config.ENVIRONMENT_DB_URL"
                 label="Environment Host"
                 outlined
+                :error-messages="errors.ENVIRONMENT_DB_URL"
               />
               <v-text-field
                 v-model="config.ENVIRONMENT_DB_USERNAME"
                 label="Environment User"
                 outlined
+                :error-messages="errors.ENVIRONMENT_DB_USERNAME"
               />
               <v-text-field
                 v-model="config.ENVIRONMENT_DB_PASSWORD"
                 label="Environment Password"
                 type="password"
                 outlined
+                :error-messages="errors.ENVIRONMENT_DB_PASSWORD"
               />
             </div>
           </v-card>
@@ -96,6 +105,7 @@
               label="Admin Name"
               outlined
               required
+              :error-messages="errors.ADMIN_NAME"
             />
 
             <v-text-field
@@ -103,6 +113,7 @@
               label="Admin Username"
               outlined
               required
+              :error-messages="errors.ADMIN_USERNAME"
             />
             <v-text-field
               v-model="config.ADMIN_PASSWORD"
@@ -110,6 +121,7 @@
               type="password"
               outlined
               required
+              :error-messages="errors.ADMIN_PASSWORD"
             />
           </v-card>
         </template>
@@ -123,6 +135,7 @@
               label="Application name"
               outlined
               required
+              :error-messages="errors.APPLICATION_NAME"
             />
 
             <v-text-field
@@ -130,6 +143,7 @@
               label="Backend address"
               outlined
               required
+              :error-messages="errors.SERVER_BACKEND_URL"
             />
             <v-select
               v-model="config.SERVER_MEMORY_ENGINE"
@@ -137,6 +151,7 @@
               item-title="text"
               item-value="value"                
               label="Server memory engine (for caching, temporary, etc)"
+              :error-messages="errors.SERVER_MEMORY_ENGINE"
               outlined
             />            
           </v-card>
@@ -166,6 +181,7 @@
 export default {
   data() {
     return {
+      errors: {}, // Store validation errors here
       currentStep: 1,
       items: [
         'Database Configuration',
@@ -208,7 +224,7 @@ export default {
         ADMIN_PASSWORD: '',
         // Server configuration
         APPLICATION_NAME: 'CommandBridge',
-        SERVER_BACKEND_URL: '',
+        SERVER_BACKEND_URL: 'http://localhost:3000',
         SERVER_MEMORY_ENGINE: '',
       },
     };
@@ -226,7 +242,9 @@ export default {
       })
         .then((response) => {
           if (!response.ok) {
-            throw new Error('Failed to save configuration');
+            return response.json().then((error) => {
+              throw new Error(JSON.stringify(error));
+            });
           }
           return response.text();
         })
@@ -235,10 +253,57 @@ export default {
           this.resetStepper();
         })
         .catch((error) => {
-          console.error(error);
-          alert('Error saving configuration: ' + error.message);
+          const errorData = JSON.parse(error.message);
+          if (errorData?.message) {
+            this.processValidationErrors(errorData.message);
+          } else {
+            alert('Error saving configuration: ' + error.message);
+          }
         });
     },
+    processValidationErrors(messages) {
+      // Reset previous errors
+      this.errors = {};
+      let firstErrorStep = null;
+
+      const fieldToStepMap = {
+        DB_TYPE: 1,
+        DB_URL: 1,
+        DB_USERNAME: 1,
+        DB_PASSWORD: 1,
+        ENVIRONMENT_PREFIX: 2,
+        ENVIRONMENT_NAME: 2,
+        ENVIRONMENT_DB_TYPE: 2,
+        ENVIRONMENT_DB_URL: 2,
+        ENVIRONMENT_DB_USERNAME: 2,
+        ENVIRONMENT_DB_PASSWORD: 2,
+        ADMIN_NAME: 3,
+        ADMIN_USERNAME: 3,
+        ADMIN_PASSWORD: 3,
+        APPLICATION_NAME: 4,
+        SERVER_BACKEND_URL: 4,
+        SERVER_MEMORY_ENGINE: 4,
+      };
+
+      // Parse validation errors
+      messages.forEach((msg) => {
+        const field = msg.split(' ')[0]; // Extract field prefix
+        const step = fieldToStepMap[field];
+        if (!this.errors[field]) {
+          this.errors[field] = [];
+        }
+        this.errors[field].push(msg);
+        // Record the first step containing an error
+        if (firstErrorStep === null || step < firstErrorStep) {
+          firstErrorStep = step;
+        }        
+      });
+
+      // Navigate to the first step with an error
+      if (firstErrorStep !== null) {
+        this.currentStep = firstErrorStep;
+      }      
+    },    
     resetStepper() {
       // Reset the stepper to the first step
       this.currentStep = 1;
