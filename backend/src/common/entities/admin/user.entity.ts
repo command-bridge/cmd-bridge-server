@@ -19,4 +19,7 @@ export class UserEntity {
 
     @Column()
     environment_id: number;
+
+    @Column({ default: 0 })
+    is_admin: boolean;
 }

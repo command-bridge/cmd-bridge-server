@@ -4,10 +4,7 @@ import { Repository } from "typeorm";
 import { UnauthorizedException } from "@nestjs/common";
 import { JwtAuthService } from "@common/auth/jwt-auth.service";
 import { UserEntity } from "@common/entities/admin/user.entity";
-import {
-    comparePassword,
-    hashPassword,
-} from "@common/helpers/hash-password.helper";
+import { comparePassword } from "@common/helpers/hash-password.helper";
 import { JwtTokenType } from "@common/auth/jwt-token-type.enum";
 
 export class UserService {
@@ -21,7 +18,7 @@ export class UserService {
         const { user_name, password } = userLoginDto;
 
         const user = await this.userRepository.findOne({
-            select: ["password", "environment_id"],
+            select: ["password", "environment_id", "is_admin"],
             where: { user_name },
         });
 
@@ -34,6 +31,7 @@ export class UserService {
                 id: user.id,
                 environment_id: user.environment_id,
                 type: JwtTokenType.User,
+                is_admin: user.is_admin,
             }),
         };
     }

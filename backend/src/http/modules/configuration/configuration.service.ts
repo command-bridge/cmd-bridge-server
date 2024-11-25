@@ -100,6 +100,7 @@ export class ConfigurationService {
             name: configs.ADMIN_NAME,
             environment_id: 1,
             group_id: 0,
+            is_admin: true,
         };
 
         await this.adminConnection.getRepository(UserEntity).save(user);
