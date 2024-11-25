@@ -1,6 +1,7 @@
 import {
     Body,
     Controller,
+    Get,
     Post,
     UseGuards,
     UsePipes,
@@ -30,5 +31,11 @@ export class DeviceController {
     @UseGuards(JwtAuthGuard)
     public create() {
         return this.deviceService.create();
+    }
+
+    @Get()
+    @UseGuards(JwtAuthGuard)
+    public getAll() {
+        return this.deviceService.getAll();
     }
 }

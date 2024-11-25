@@ -15,6 +15,7 @@ import { EnvironmentEntity } from "@common/entities/admin/environment.entity";
         ConnectionsModule,
         SharedMemoryModule,
         TypeOrmModule.forFeature([EnvironmentEntity]),
+        ConnectionsModule,
     ],
 })
 export class DeviceModule {}

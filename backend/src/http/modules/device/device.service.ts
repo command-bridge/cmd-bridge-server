@@ -19,6 +19,7 @@ export class DeviceService {
         @InjectRepository(EnvironmentEntity)
         private readonly environmentRepository: Repository<EnvironmentEntity>,
         private readonly jwtAuthService: JwtAuthService,
+        private readonly environmentConnection: ConnectionRepositoryService,
     ) {}
 
     public async activate(deviceActivationDto: DeviceActivationDto) {
@@ -85,7 +86,22 @@ export class DeviceService {
                 environment_id: environment.id,
                 id: device.id,
                 type: JwtTokenType.Device,
+                is_admin: false,
             }),
         };
+    }
+
+    public async getAll() {
+        const repository =
+            await this.environmentConnection.getRepository(DeviceEntity);
+        const devices = (await repository.find()).map((device) => {
+            device.integration_token = device.integration_token
+                .slice(0, 5)
+                .concat("...");
+
+            return device;
+        });
+
+        return devices;
     }
 }
