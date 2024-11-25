@@ -20,7 +20,7 @@ export class ConnectionRepositoryService {
         @Inject(REQUEST) private readonly request: RequestWithPayload,
         private readonly connectionManager: ConnectionManagerService,
         private readonly connectionConfigsService: ConnectionConfigService,
-    ) { }
+    ) {}
 
     async getRepository<T>(entity: GenericEntity<T>, environment_id?: number) {
         const environmentId =

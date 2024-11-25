@@ -4,7 +4,7 @@ import { JwtTokenPayloadDto } from "./jwt-token-payload.dto";
 
 @Injectable()
 export class JwtAuthService {
-    constructor(private readonly jwtService: JwtService) { }
+    constructor(private readonly jwtService: JwtService) {}
 
     generateToken(payload: JwtTokenPayloadDto) {
         return this.jwtService.sign(payload);
