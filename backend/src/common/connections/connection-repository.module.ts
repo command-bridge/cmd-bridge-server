@@ -1,8 +1,11 @@
-import { DynamicModule, Module, Provider } from "@nestjs/common";
+import { DynamicModule, Module, Provider, Scope } from "@nestjs/common";
 import { ConnectionRepositoryService } from "./connection-repository.service";
 import { GenericEntity } from "@common/entities/generic-entity.type";
+import { ConnectionsModule } from "./connections.module";
 
-@Module({})
+@Module({
+    imports: [ConnectionsModule],
+})
 export class ConnectionRepositoryModule {
     static forEntity<T>(entity: GenericEntity<T>): DynamicModule {
         const token = `ENVIRONMENT_REPOSITORY_${entity.name}`;
@@ -12,9 +15,14 @@ export class ConnectionRepositoryModule {
             useFactory: async (
                 connectionRepositoryService: ConnectionRepositoryService,
             ) => {
-                return await connectionRepositoryService.getRepository(entity);
+                return async () => {
+                    return await connectionRepositoryService.getRepository(
+                        entity,
+                    );
+                };
             },
             inject: [ConnectionRepositoryService],
+            scope: Scope.REQUEST,
         };
 
         return {
