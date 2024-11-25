@@ -13,6 +13,7 @@
           <v-toolbar-title>Environment List</v-toolbar-title>
           <v-spacer />
           <v-btn color="primary" @click="fetchEnvironments">Refresh</v-btn>
+          <v-btn color="success" @click="openCreateModal">Create New</v-btn>
         </v-toolbar>
       </template>
       <template #item.db_port="{ item }">
@@ -20,16 +21,31 @@
         {{ item.db_port || 'N/A' }}
       </template>
     </v-data-table>
+
+    <ModalEnvironment
+      v-model:isOpen="isEnvironmentModalOpen"
+      :initialData="selectedEnvironment"
+      :mode="modalMode"
+      @refresh="fetchEnvironments"
+    />    
   </v-container>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import api from '@/api';
+import ModalEnvironment from './ModalEnvironment.vue';
 
 export default defineComponent({
   name: 'ViewEnvironments',
+  components: {
+    ModalEnvironment
+  },
   setup() {
+    const isEnvironmentModalOpen = ref(false);
+    const selectedEnvironment = ref({});
+    const modalMode = ref('create');
+
     // Data state
     const environments = ref([]);
     const headers = ref([
@@ -40,6 +56,12 @@ export default defineComponent({
       { title: 'Type', key: 'db_type' },
       { title: 'Database', key: 'db_database' },
     ]);
+
+    const openCreateModal = () => {
+      selectedEnvironment.value = {};
+      modalMode.value = 'create';
+      isEnvironmentModalOpen.value = true;
+    };
 
     // Fetch data from the API
     const fetchEnvironments = async () => {
@@ -56,6 +78,10 @@ export default defineComponent({
     fetchEnvironments();
 
     return {
+      isEnvironmentModalOpen,
+      selectedEnvironment,
+      modalMode,
+      openCreateModal,
       environments,
       headers,
       fetchEnvironments,
