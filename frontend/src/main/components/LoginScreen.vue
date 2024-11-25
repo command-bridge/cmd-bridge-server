@@ -40,6 +40,7 @@
 import { defineComponent, ref } from 'vue';
 import api from '@/api';
 import { AxiosError } from 'axios';
+import authStore from '../stores/auth.store';
 
 export default defineComponent({
   name: 'LoginScreen',
@@ -59,8 +60,7 @@ export default defineComponent({
 
         const { token } = result.data;
 
-        // Store the token in localStorage
-        localStorage.setItem('authToken', token);
+        authStore.setToken(token);
 
         // Emit the authenticated event
         emit('authenticated');
