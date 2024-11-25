@@ -7,6 +7,7 @@ import { JwtAuthModule } from "@common/auth/jwt.module";
 import { DeviceModule } from "@http/modules/device/device.module";
 import { SharedMemoryModule } from "@common/shared-memory/shared-memory.module";
 import { ConnectionsModule } from "@common/connections/connections.module";
+import { EnvironmentModule } from "@http/modules-admin/environment/environment.module";
 
 @Module({
     imports: [
@@ -26,6 +27,7 @@ import { ConnectionsModule } from "@common/connections/connections.module";
         SharedMemoryModule,
         DeviceModule,
         UserModule,
+        EnvironmentModule,
     ],
 })
 export class AppModule {}
