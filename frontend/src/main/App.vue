@@ -5,7 +5,7 @@
 
     <!-- Show Layout when authenticated -->
     <div v-else>
-      <MenuBar :menuItems="menuItems" @navigate="handleNavigation" @logout="handleLogout"/>
+      <MenuBar :menuItems="filteredMenuItems" @navigate="handleNavigation" @logout="handleLogout"/>
       <v-main>
         <v-container>
           <component v-if="currentComponent" :is="currentComponent" />
@@ -18,9 +18,10 @@
 
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script lang="ts">
-import { defineComponent, ref, shallowRef } from 'vue';
+import { defineComponent, ref, shallowRef, computed } from 'vue';
 import LoginScreen from './components/LoginScreen.vue';
 import MenuBar from './components/MenuBar.vue';
+import authStore from './stores/auth.store';
 
 export default defineComponent({
   name: 'App',
@@ -38,9 +39,14 @@ export default defineComponent({
     // Define menu items
     const menuItems = ref([
       { label: 'Dashboard', route: 'dashboard' },
-      { label: 'Environments', route: 'environments' },
+      { label: 'Environments', route: 'environments', requiresAdmin: true },
       { label: 'Devices', route: 'devices' },
     ]);
+
+    // Computed menu items based on `is_admin`
+    const filteredMenuItems = computed(() => {
+      return menuItems.value.filter(item => !item.requiresAdmin || authStore.state.decodedToken?.is_admin);
+    });
 
     // Define route-to-component mapping
     const routes: Record<string, () => Promise<typeof import('*.vue')>> = {
@@ -71,7 +77,11 @@ export default defineComponent({
 
       // Reset authentication state
       isAuthenticated.value = false;
-    };    
+      authStore.clearToken();
+    };
+
+    // Load token from localStorage at startup
+    authStore.loadTokenFromStorage();
 
     // Load the initial route on app startup
     loadComponent(currentRoute.value);
@@ -82,6 +92,7 @@ export default defineComponent({
       currentRoute,
       currentComponent,
       menuItems,
+      filteredMenuItems,
       handleNavigation,
     };
   },
