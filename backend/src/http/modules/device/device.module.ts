@@ -12,7 +12,6 @@ import { EnvironmentEntity } from "@common/entities/admin/environment.entity";
     providers: [DeviceService],
     imports: [
         JwtAuthModule,
-        ConnectionsModule,
         SharedMemoryModule,
         TypeOrmModule.forFeature([EnvironmentEntity]),
         ConnectionsModule,

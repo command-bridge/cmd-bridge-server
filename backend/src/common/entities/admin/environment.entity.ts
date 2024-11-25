@@ -23,9 +23,9 @@ export class EnvironmentEntity {
     @Column()
     db_password: string;
 
-    @Column()
+    @Column({ nullable: true })
     db_database: string;
 
-    @Column()
+    @Column({ nullable: true })
     hashed_id: string;
 }

@@ -23,13 +23,18 @@ export class ConnectionRepositoryService {
     ) {}
 
     async getRepository<T>(entity: GenericEntity<T>, environment_id?: number) {
+        const connection = await this.getConnection(environment_id);
+
+        return connection.getRepository(entity);
+    }
+
+    async getConnection(environment_id?: number) {
         const environmentId =
             environment_id || this.getEnvironmentIdFromRequest();
 
         const config = await this.getEnvironmentDbConfig(environmentId);
-        const connection = await this.connectionManager.getConnection(config);
 
-        return connection.getRepository(entity);
+        return this.connectionManager.getConnection(config);
     }
 
     private getEnvironmentIdFromRequest() {
@@ -46,15 +51,20 @@ export class ConnectionRepositoryService {
         const { db_host, db_password, db_port, db_type, db_user, db_database } =
             await this.connectionConfigsService.get(environmentId);
 
+        const environmentEntities = [
+            ...ENVIRONMENT_ENTITIES,
+            ...ENVIRONMENT_MEMORY_ENTITIES,
+        ];
+
         return {
             type: db_type,
             host: db_host,
             port: db_port,
             username: db_user,
             password: db_password,
-            database: db_database,
-            entities: [...ENVIRONMENT_ENTITIES, ...ENVIRONMENT_MEMORY_ENTITIES],
-            synchronize: true, // Use cautiously in production
+            database: db_database ? db_database : undefined,
+            entities: db_database ? environmentEntities : undefined,
+            synchronize: db_database && db_database.length ? true : false, // Use cautiously in production
         };
     }
 }

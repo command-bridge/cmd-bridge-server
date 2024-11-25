@@ -14,7 +14,9 @@ export class ConnectionManagerService {
     private connections: Map<string, DataSource> = new Map();
 
     async getConnection(config: DatabaseEnginesOptions): Promise<DataSource> {
-        const key = `${config.type}-${config.host}-${config.database}`;
+        const key = `${config.type}-${config.host}`.concat(
+            config.database ? `-${config.database}` : "",
+        );
 
         if (!this.connections.has(key)) {
             const dataSource = new DataSource(config);
