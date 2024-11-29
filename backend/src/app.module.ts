@@ -10,6 +10,7 @@ import { ConnectionsModule } from "@common/connections/connections.module";
 import { EnvironmentModule } from "@http/modules-admin/environment/environment.module";
 import { DeviceEventsModule } from "@http/modules/device-events/device-events.module";
 import { TokenValidationMiddleware } from "@common/auth/jwt-auth.middlewere";
+import { specificDatabaseEngineConfigs } from "@common/helpers/specific-database-engine-configs.helper";
 
 @Module({
     imports: [
@@ -23,6 +24,9 @@ import { TokenValidationMiddleware } from "@common/auth/jwt-auth.middlewere";
             database: process.env.DB_NAME || "your_database",
             entities: [...ADMIN_ENTITIES, ...ADMIN_MEMORY_ENTITIES],
             synchronize: true, // Use cautiously in production
+            ...specificDatabaseEngineConfigs(
+                (process.env.DB_TYPE as any) || "mysql",
+            ),
         }),
         ConnectionsModule,
         JwtAuthModule,
