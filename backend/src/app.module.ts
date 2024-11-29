@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { MiddlewareConsumer, Module, RequestMethod } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule } from "@nestjs/config";
 import { UserModule } from "@http/modules/user/user.module";
@@ -8,6 +8,8 @@ import { DeviceModule } from "@http/modules/device/device.module";
 import { SharedMemoryModule } from "@common/shared-memory/shared-memory.module";
 import { ConnectionsModule } from "@common/connections/connections.module";
 import { EnvironmentModule } from "@http/modules-admin/environment/environment.module";
+import { DeviceEventsModule } from "@http/modules/device-events/device-events.module";
+import { TokenValidationMiddleware } from "@common/auth/jwt-auth.middlewere";
 
 @Module({
     imports: [
@@ -28,6 +30,13 @@ import { EnvironmentModule } from "@http/modules-admin/environment/environment.m
         DeviceModule,
         UserModule,
         EnvironmentModule,
+        DeviceEventsModule,
     ],
 })
-export class AppModule {}
+export class AppModule {
+    configure(consumer: MiddlewareConsumer) {
+        consumer
+            .apply(TokenValidationMiddleware)
+            .forRoutes({ path: "*", method: RequestMethod.ALL }); // Aplica globalmente
+    }
+}

@@ -1,5 +1,5 @@
 import { AdminGuard } from "@http/core/auth/admin.guard";
-import { JwtAuthGuard } from "@http/core/auth/jwt-auth.guard";
+import { UserGuard } from "@http/core/auth/user-guard";
 import {
     Body,
     Controller,
@@ -13,7 +13,7 @@ import { EnvironmentService } from "./environment.service";
 import { EnvironmentCreateDto } from "./environment.dto";
 
 @Controller("admin/environment")
-@UseGuards(JwtAuthGuard, AdminGuard)
+@UseGuards(UserGuard, AdminGuard)
 export class EnvironmentController {
     constructor(private readonly environmentService: EnvironmentService) {}
 

@@ -26,7 +26,6 @@ export class EnvironmentService {
     }
 
     public async upsert(environment: EnvironmentCreateDto) {
-
         let environmentConnection: DataSource = null;
 
         const create = new EnvironmentEntity();

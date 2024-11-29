@@ -4,7 +4,7 @@ import { randomString } from "@common/helpers/random-string.helper";
 import { Repository } from "typeorm";
 import { Inject, Injectable } from "@nestjs/common";
 import { REQUEST } from "@nestjs/core";
-import { RequestWithPayload } from "@http/core/auth/jwt-auth.guard";
+import { RequestWithPayload } from "@common/auth/jwt-auth.middlewere";
 
 @Injectable()
 export class MemoryDeviceActivationRepository {

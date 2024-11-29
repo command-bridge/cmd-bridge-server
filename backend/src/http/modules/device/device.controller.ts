@@ -9,7 +9,7 @@ import {
 } from "@nestjs/common";
 import { DeviceActivationDto, DeviceLoginDto } from "./device.dto";
 import { DeviceService } from "./device.service";
-import { JwtAuthGuard } from "@http/core/auth/jwt-auth.guard";
+import { UserGuard } from "@http/core/auth/user-guard";
 
 @Controller("device")
 export class DeviceController {
@@ -28,13 +28,13 @@ export class DeviceController {
     }
 
     @Post()
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(UserGuard)
     public create() {
         return this.deviceService.create();
     }
 
     @Get()
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(UserGuard)
     public getAll() {
         return this.deviceService.getAll();
     }

@@ -6,8 +6,8 @@ import {
 } from "@common/entities";
 import { ConnectionManagerService } from "./connection-manager.service";
 import { GenericEntity } from "@common/entities/generic-entity.type";
-import { RequestWithPayload } from "@http/core/auth/jwt-auth.guard";
 import { ConnectionConfigService } from "./connection-config.service";
+import { RequestWithPayload } from "@common/auth/jwt-auth.middlewere";
 
 export function InjectEnvironmentRepository<T>(entity: GenericEntity<T>) {
     const token = `ENVIRONMENT_REPOSITORY_${entity.name}`;

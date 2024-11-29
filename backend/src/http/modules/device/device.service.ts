@@ -10,6 +10,7 @@ import { Repository } from "typeorm";
 import { EnvironmentEntity } from "@common/entities/admin/environment.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { JwtTokenType } from "@common/auth/jwt-token-type.enum";
+import { OnlineDevicesRepository } from "@common/shared-memory/environment-memory/repositories/online-devices.memory";
 
 @Injectable()
 export class DeviceService {
@@ -20,6 +21,7 @@ export class DeviceService {
         private readonly environmentRepository: Repository<EnvironmentEntity>,
         private readonly jwtAuthService: JwtAuthService,
         private readonly environmentConnection: ConnectionRepositoryService,
+        private readonly onlineDevicesRepository: OnlineDevicesRepository,
     ) {}
 
     public async activate(deviceActivationDto: DeviceActivationDto) {
@@ -98,6 +100,12 @@ export class DeviceService {
             device.integration_token = device.integration_token
                 .slice(0, 5)
                 .concat("...");
+
+            device["is_online"] = this.onlineDevicesRepository.get(
+                device.id.toString(),
+            )
+                ? true
+                : false;
 
             return device;
         });

@@ -1,10 +1,10 @@
+import { RequestWithPayload } from "@common/auth/jwt-auth.middlewere";
 import {
     Injectable,
     CanActivate,
     ExecutionContext,
     ForbiddenException,
 } from "@nestjs/common";
-import { RequestWithPayload } from "./jwt-auth.guard";
 
 @Injectable()
 export class AdminGuard implements CanActivate {
