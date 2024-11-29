@@ -10,6 +10,7 @@
     "configure": "VUE_APP_CONFIGURATION_MODE=true vue-cli-service serve --mode configure"
   },
   "dependencies": {
+    "@mdi/font": "^7.4.47",
     "@vitejs/plugin-vue": "^5.2.0",
     "@vue/compiler-sfc": "^3.5.13",
     "core-js": "^3.8.3",
