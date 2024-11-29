@@ -13,6 +13,7 @@ import {
     DatabaseConnectionOptions,
     testDatabaseConnection,
 } from "@common/helpers/test-database-connection.helper";
+import { randomBytes } from "crypto";
 
 const DEFAULT_COMMAND_BRIDGE_DB_NAME = "command-bridge";
 
@@ -65,11 +66,13 @@ export class ConfigurationService {
             "ENVIRONMENT_PREFIX",
         ] as (keyof ConfigurationDto)[];
 
+        const jwtSecretKey = randomBytes(32).toString("hex");
+
         let envContent = `DB_NAME=${DEFAULT_COMMAND_BRIDGE_DB_NAME}\n`;
+        envContent += `JWT_SECRET=${jwtSecretKey}\n`;
 
         for (const key of configsToPersist) {
             if (key === "DB_URL") {
-
                 const [host, port] = configs.DB_URL.split(":");
 
                 envContent += `DB_HOST=${host}\n`;
