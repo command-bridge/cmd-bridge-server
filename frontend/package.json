@@ -7,7 +7,7 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "type-check": "tsc --noEmit",
-    "configure": "crossenv VUE_APP_CONFIGURATION_MODE=true vue-cli-service serve --mode configure"
+    "configure": "cross-env VUE_APP_CONFIGURATION_MODE=true vue-cli-service serve --mode configure"
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
