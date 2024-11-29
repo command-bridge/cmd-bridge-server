@@ -7,6 +7,7 @@ import {
 } from "@common/entities";
 import { DatabaseSupportedEngines } from "@common/enums/database-supported-engines.enum";
 import { DataSource } from "typeorm";
+import { specificDatabaseEngineConfigs } from "./specific-database-engine-configs.helper";
 
 export type DatabaseConnectionOptions = {
     type: DatabaseSupportedEngines;
@@ -40,6 +41,7 @@ export async function testDatabaseConnection(
                   ? [...ADMIN_ENTITIES, ...ADMIN_MEMORY_ENTITIES]
                   : [...ENVIRONMENT_ENTITIES, ...ENVIRONMENT_MEMORY_ENTITIES],
           };
+    const engineSpecificParamters = specificDatabaseEngineConfigs(options.type);
 
     try {
         result.connection = new DataSource({
@@ -50,6 +52,7 @@ export async function testDatabaseConnection(
             password: options.password,
             database: options.database,
             ...extendedParameters,
+            ...engineSpecificParamters,
         } as DatabaseEnginesOptions);
 
         await result.connection.initialize();

@@ -8,6 +8,7 @@ import { ConnectionManagerService } from "./connection-manager.service";
 import { GenericEntity } from "@common/entities/generic-entity.type";
 import { ConnectionConfigService } from "./connection-config.service";
 import { RequestWithPayload } from "@common/auth/jwt-auth.middlewere";
+import { specificDatabaseEngineConfigs } from "@common/helpers/specific-database-engine-configs.helper";
 
 export function InjectEnvironmentRepository<T>(entity: GenericEntity<T>) {
     const token = `ENVIRONMENT_REPOSITORY_${entity.name}`;
@@ -56,6 +57,8 @@ export class ConnectionRepositoryService {
             ...ENVIRONMENT_MEMORY_ENTITIES,
         ];
 
+        const specificDatabaseConfigs = specificDatabaseEngineConfigs(db_type);
+
         return {
             type: db_type,
             host: db_host,
@@ -65,6 +68,7 @@ export class ConnectionRepositoryService {
             database: db_database ? db_database : undefined,
             entities: db_database ? environmentEntities : undefined,
             synchronize: db_database && db_database.length ? true : false, // Use cautiously in production
+            ...specificDatabaseConfigs,
         };
     }
 }
