@@ -82,7 +82,7 @@ export default defineComponent({
       { text: 'PostgreSQL', value: 'postgres' },
       { text: 'MySQL', value: 'mysql' },
       { text: 'MariaDB', value: 'mariadb' },
-      { text: 'SQLite', value: 'sqlite' },
+      { text: 'SQL Server', value: 'mssql' },
     ]);
 
     // Watchers for syncing props and form validation
