@@ -24,9 +24,20 @@ async function bootstrap() {
     const app = await NestFactory.create(
         isConfigMode ? ConfigurationModule : AppModule,
     );
+    const allowedOrigins = [
+        "http://localhost:8080",
+        ...(process.env.CORS_ALLOWED_HOSTS?.split(",") || []),
+    ];
 
     app.enableCors({
-        origin: "http://localhost:8080", // Allow frontend's origin
+        origin: (origin, callback) => {
+            // Permitir origens da lista ou requisições sem "origin" (ex: Postman)
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error("Not allowed by CORS"));
+            }
+        },
         methods: "GET,POST",
         credentials: true,
     });
