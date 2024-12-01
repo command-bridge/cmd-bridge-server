@@ -87,7 +87,7 @@ export class ConfigurationService {
             envContent += `${key}=${configs[key]}\n`;
         }
 
-        const envPath = join(process.cwd(), ".env"); // Adjust this path as needed
+        const envPath = join(process.env.ASSETS_DIR, ".env");
 
         try {
             Logger.log(`Writing .env file at ${envPath}`);

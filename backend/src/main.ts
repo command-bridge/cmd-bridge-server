@@ -1,13 +1,15 @@
 import { NestFactory } from "@nestjs/core";
-import { AppModule } from "./app.module";
-import { ConfigurationModule } from "@http/modules/configuration/configuration.module";
 import { join } from "path";
 import { existsSync } from "fs";
 import { Logger } from "@nestjs/common";
 
+if (!process.env.ASSETS_DIR) {
+    process.env.ASSETS_DIR = join(process.cwd(), "assets");
+}
+
 async function bootstrap() {
     const isConfigMode = process.env.CONFIG_MODE === "true";
-    const envFileExists = existsSync(join(process.cwd(), ".env"));
+    const envFileExists = existsSync(join(process.env.ASSETS_DIR, ".env"));
 
     if (isConfigMode && envFileExists) {
         Logger.error(
@@ -21,9 +23,19 @@ async function bootstrap() {
         process.exit();
     }
 
-    const app = await NestFactory.create(
-        isConfigMode ? ConfigurationModule : AppModule,
-    );
+    const MainModuleLazyLoaded = await (async () => {
+        if (isConfigMode) {
+            return (
+                await import(
+                    "./http/modules/configuration/configuration.module"
+                )
+            ).ConfigurationModule;
+        }
+
+        return (await import("./app.module")).AppModule;
+    })();
+
+    const app = await NestFactory.create(MainModuleLazyLoaded);
     const allowedOrigins = [
         "http://localhost:8080",
         ...(process.env.CORS_ALLOWED_HOSTS?.split(",") || []),

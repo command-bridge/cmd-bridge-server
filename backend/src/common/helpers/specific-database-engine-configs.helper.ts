@@ -1,4 +1,4 @@
-import { DatabaseEnginesOptions } from "@common/connections/connection-manager.service"
+import { DatabaseEnginesOptions } from "@common/connections/connection-manager.service";
 
 export function specificDatabaseEngineConfigs(db_type: string) {
     const engines = {

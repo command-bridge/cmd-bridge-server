@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, RequestMethod } from "@nestjs/common";
+import {
+    Logger,
+    MiddlewareConsumer,
+    Module,
+    RequestMethod,
+} from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule } from "@nestjs/config";
 import { UserModule } from "@http/modules/user/user.module";
@@ -11,10 +16,13 @@ import { EnvironmentModule } from "@http/modules-admin/environment/environment.m
 import { DeviceEventsModule } from "@http/modules/device-events/device-events.module";
 import { TokenValidationMiddleware } from "@common/auth/jwt-auth.middlewere";
 import { specificDatabaseEngineConfigs } from "@common/helpers/specific-database-engine-configs.helper";
+import { join } from "path";
 
 @Module({
     imports: [
-        ConfigModule.forRoot(), // Load environment variables
+        ConfigModule.forRoot({
+            envFilePath: join(process.env.ASSETS_DIR, ".env"),
+        }),
         TypeOrmModule.forRoot({
             type: (process.env.DB_TYPE as any) || "mysql",
             host: process.env.DB_HOST || "localhost",
