@@ -56,9 +56,8 @@ export class DeviceEventsService {
 
         setTimeout(() => {
             onlineDevice.subject.next({
-                action: "welcome",
-                payload: { msg: "Welcome!" },
-            })
+                action: "send-packages",
+            });
         }, 50);
 
         return onlineDevice.subject

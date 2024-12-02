@@ -1,9 +1,4 @@
-import {
-    Logger,
-    MiddlewareConsumer,
-    Module,
-    RequestMethod,
-} from "@nestjs/common";
+import { MiddlewareConsumer, Module, RequestMethod } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule } from "@nestjs/config";
 import { UserModule } from "@http/modules/user/user.module";
@@ -17,9 +12,12 @@ import { DeviceEventsModule } from "@http/modules/device-events/device-events.mo
 import { TokenValidationMiddleware } from "@common/auth/jwt-auth.middlewere";
 import { specificDatabaseEngineConfigs } from "@common/helpers/specific-database-engine-configs.helper";
 import { join } from "path";
+import { DevicePackagesModule } from "@http/modules/device-packages/device-packages.module";
+import { ScheduleModule } from "@nestjs/schedule";
 
 @Module({
     imports: [
+        ScheduleModule.forRoot(),
         ConfigModule.forRoot({
             envFilePath: join(process.env.ASSETS_DIR, ".env"),
         }),
@@ -43,6 +41,7 @@ import { join } from "path";
         UserModule,
         EnvironmentModule,
         DeviceEventsModule,
+        DevicePackagesModule,
     ],
 })
 export class AppModule {
