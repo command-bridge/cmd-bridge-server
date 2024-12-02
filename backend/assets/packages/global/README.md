@@ -1,0 +1,1 @@
+Place on this directory the packages (plugins) that will be served to the devices at run time globally.
