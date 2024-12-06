@@ -2,7 +2,7 @@
   <v-container>
     <h1>Devices</h1>
     <v-data-table
-      :headers="headers"
+      :headers="columns"
       :items="devices"
       :items-per-page="5"
       class="elevation-1"
@@ -12,20 +12,23 @@
         <v-toolbar flat>
           <v-toolbar-title>Device List</v-toolbar-title>
           <v-spacer />
-          <v-btn color="primary" @click="fetchDevices">Refresh</v-btn>
+          <v-btn color="primary" @click="fetchTableData">Refresh</v-btn>
           <v-btn color="success" @click="openCreateDeviceModal">Create New</v-btn>
           <v-btn color="info" @click="checkUpdatesForAll">Check Updates for All</v-btn>
         </v-toolbar>
       </template>
-      <template #item.is_active="{ item }">
+
+      <!-- Colunas personalizadas -->
+      <template #item.is_online="{ item }">
         <v-icon :color="item.is_online ? 'green' : 'red'">
           {{ item.is_online ? 'mdi-checkbox-marked-circle' : 'mdi-close-circle' }}
         </v-icon>
       </template>
+
       <template #item.actions="{ item }">
         <v-menu>
           <template #activator="{ props }">
-            <v-btn v-if="item.is_online" v-bind="props" icon>
+            <v-btn v-if="item.is_active" v-bind="props" icon>
               <v-icon>mdi-dots-vertical</v-icon>
             </v-btn>
           </template>
@@ -46,17 +49,12 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue';
-import api from '@/api';
-import ModalCreateDevice from './ModalCreateDevice.vue'; // Import the modal component
 
-interface Device {
-  id: number;
-  device_hash: number;
-  integration_token: number;
-  is_online: boolean;
-}
+
+<script lang="ts">
+import { defineComponent, ref, onMounted } from 'vue';
+import api from '@/api';
+import ModalCreateDevice from './ModalCreateDevice.vue';
 
 export default defineComponent({
   name: 'ViewDevices',
@@ -64,23 +62,18 @@ export default defineComponent({
     ModalCreateDevice,
   },
   setup() {
-    const devices = ref<Device[]>([]);
-    const headers = ref([
-      { title: '#ID', key: 'id' },
-      { title: 'Hardware ID', key: 'device_hash' },
-      { title: 'Auth Token', key: 'integration_token' },
-      { title: 'Active?', key: 'is_active' },
-      { title: 'Actions', key: 'actions', align: 'end' },
-    ]);
-
+    const columns = ref([]);
+    const devices = ref<Record<string, unknown>[]>([]);
     const isCreateDeviceModalOpen = ref(false);
 
-    const fetchDevices = async () => {
+    // Fetch data and columns from the backend
+    const fetchTableData = async () => {
       try {
-        const response = await api.get('/device');
-        devices.value = response.data;
+        const response = await api.get('/device'); // Backend retorna colunas e dados
+        columns.value = response.data.columns;
+        devices.value = response.data.data;
       } catch (error) {
-        console.error('Failed to fetch devices:', error);
+        console.error('Failed to fetch table data:', error);
       }
     };
 
@@ -88,7 +81,7 @@ export default defineComponent({
       isCreateDeviceModalOpen.value = true;
     };
 
-    const checkUpdates = async (device: Device) => {
+    const checkUpdates = async (device: Record<string, unknown>) => {
       try {
         await api.post(`/device-events/${device.id}/check-updates`);
         alert(`Update check initiated for device ${device.device_hash}`);
@@ -97,7 +90,7 @@ export default defineComponent({
       }
     };
 
-    const restartDevice = async (device: Device) => {
+    const restartDevice = async (device: Record<string, unknown>) => {
       try {
         await api.post(`/device-events/${device.id}/restart`);
         alert(`Restart initiated for device ${device.device_hash}`);
@@ -108,7 +101,7 @@ export default defineComponent({
 
     const checkUpdatesForAll = async () => {
       try {
-        const onlineDevices = devices.value.filter((device: Device) => device.is_online);
+        const onlineDevices = devices.value.filter((device) => device.is_online);
         for (const device of onlineDevices) {
           await checkUpdates(device);
         }
@@ -117,14 +110,15 @@ export default defineComponent({
       }
     };
 
-    fetchDevices();
+    // Fetch data on component mount
+    onMounted(fetchTableData);
 
     return {
+      columns,
       devices,
-      headers,
       isCreateDeviceModalOpen,
       openCreateDeviceModal,
-      fetchDevices,
+      fetchTableData,
       checkUpdates,
       restartDevice,
       checkUpdatesForAll,
@@ -132,3 +126,4 @@ export default defineComponent({
   },
 });
 </script>
+
