@@ -9,12 +9,14 @@ import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { DeviceSubscribeDto } from "./device-events.dto";
 import { map, Subject } from "rxjs";
 import { RequestWithPayload } from "@common/auth/jwt-auth.middlewere";
+import { DeviceEventsActionSerivce } from "./device-events-actions.service";
 
 @Injectable()
 export class DeviceEventsService {
     constructor(
         private readonly onlineDevicesRepository: OnlineDevicesRepository,
         private readonly environmentConnection: ConnectionRepositoryService,
+        private readonly deviceEventsActionService: DeviceEventsActionSerivce,
     ) {}
 
     public async subscribe(
@@ -49,10 +51,7 @@ export class DeviceEventsService {
             this.onlineDevicesRepository.remove(onlineDevice.device.id);
         });
 
-        Logger.log(
-            `Client ${onlineDevice.environmentId}:${onlineDevice.device.device_hash} connected (${onlineDevice.clientVersion})`,
-            DeviceEventsService.name,
-        );
+        this.deviceEventsActionService.onConnected(onlineDevice);
 
         setTimeout(() => {
             onlineDevice.subject.next({

@@ -11,6 +11,9 @@ import { EnvironmentEntity } from "@common/entities/admin/environment.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { JwtTokenType } from "@common/auth/jwt-token-type.enum";
 import { OnlineDevicesRepository } from "@common/shared-memory/environment-memory/repositories/online-devices.memory";
+import { getDataGridColumns } from "@common/decorators/datagrid.decorator";
+import { DeviceEmitters } from "./device-emitters.enum";
+import { ContextEventEmitterService } from "@http/core/context-event-emitter/context-event-emitter.service";
 
 @Injectable()
 export class DeviceService {
@@ -22,6 +25,7 @@ export class DeviceService {
         private readonly jwtAuthService: JwtAuthService,
         private readonly environmentConnection: ConnectionRepositoryService,
         private readonly onlineDevicesRepository: OnlineDevicesRepository,
+        private readonly contextEventEmitterService: ContextEventEmitterService,
     ) {}
 
     public async activate(deviceActivationDto: DeviceActivationDto) {
@@ -110,6 +114,22 @@ export class DeviceService {
             return device;
         });
 
-        return devices;
+        const columns = getDataGridColumns(DeviceEntity);
+
+        await this.contextEventEmitterService.emitAsync(
+            DeviceEmitters.FindAllDevices,
+            {
+                columns,
+                devices,
+            },
+        );
+
+        columns.push({ key: "is_online", title: "Online?" });
+        columns.push({ key: "actions", title: "Actions", align: "end" } as any);
+
+        return {
+            columns,
+            data: devices,
+        };
     }
 }

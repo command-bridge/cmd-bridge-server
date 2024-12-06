@@ -28,4 +28,7 @@ export class EnvironmentEntity {
 
     @Column({ nullable: true })
     hashed_id: string;
+
+    @Column("json", { default: null })
+    custom_parameters: Record<string, number | string | Date | boolean>;
 }

@@ -14,10 +14,14 @@ import { specificDatabaseEngineConfigs } from "@common/helpers/specific-database
 import { join } from "path";
 import { DevicePackagesModule } from "@http/modules/device-packages/device-packages.module";
 import { ScheduleModule } from "@nestjs/schedule";
+import { PluginsModule } from "@http/plugins/plugins.module";
+import { EventEmitterModule } from "@nestjs/event-emitter";
+import { ContextEventEmitterModule } from "@http/core/context-event-emitter/context-event-emitter.module";
 
 @Module({
     imports: [
         ScheduleModule.forRoot(),
+        EventEmitterModule.forRoot(),
         ConfigModule.forRoot({
             envFilePath: join(process.env.ASSETS_DIR, ".env"),
         }),
@@ -36,12 +40,14 @@ import { ScheduleModule } from "@nestjs/schedule";
         }),
         ConnectionsModule,
         JwtAuthModule,
+        ContextEventEmitterModule,
         SharedMemoryModule,
         DeviceModule,
         UserModule,
         EnvironmentModule,
         DeviceEventsModule,
         DevicePackagesModule,
+        PluginsModule.forRoot(),
     ],
 })
 export class AppModule {

@@ -14,10 +14,24 @@ import { UserGuard } from "@http/core/auth/user-guard";
 import { DeviceIdParam, DeviceSubscribeDto } from "./device-events.dto";
 import { RequestWithPayload } from "@common/auth/jwt-auth.middlewere";
 import { DeviceGuard } from "@http/core/auth/device.guard";
+import { DeviceEventsActionSerivce } from "./device-events-actions.service";
+import { DeviceEventsPendingMessagesService } from "./device-events-pending-messages.service";
+import { UUID } from "crypto";
+
+export interface IPackageMethodResponse {
+    success: boolean;
+    error?: string;
+    response?: any;
+    uuid: UUID;
+}
 
 @Controller("device-events")
 export class DeviceEventsController {
-    constructor(private readonly deviceEventsService: DeviceEventsService) {}
+    constructor(
+        private readonly deviceEventsService: DeviceEventsService,
+        private readonly deviceEventsActionService: DeviceEventsActionSerivce,
+        private readonly pendingMessagesService: DeviceEventsPendingMessagesService,
+    ) {}
 
     @UseGuards(DeviceGuard)
     @Post()
@@ -33,6 +47,22 @@ export class DeviceEventsController {
     @UseGuards(DeviceGuard)
     public devicesPool(@Req() req) {
         return this.deviceEventsService.waitForMessage(req);
+    }
+
+    @Post("on-ready")
+    public onReady(@Req() req) {
+        return this.deviceEventsActionService.onReady(req);
+    }
+
+    @Post("response")
+    handleResponse(@Body() packageResponse: IPackageMethodResponse) {
+        if (this.pendingMessagesService.hasPendingMessage(packageResponse)) {
+            this.pendingMessagesService.resolvePendingMessage(packageResponse);
+        } else {
+            console.warn(
+                `No pending message found for id: ${packageResponse.uuid}`,
+            );
+        }
     }
 
     @UseGuards(UserGuard)

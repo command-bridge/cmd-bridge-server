@@ -6,6 +6,7 @@ import { ConnectionsModule } from "@common/connections/connections.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { EnvironmentEntity } from "@common/entities/admin/environment.entity";
 import { EnvironmentMemoryModule } from "@common/shared-memory/environment-memory/environment-memory.module";
+import { ContextEventEmitterModule } from "@http/core/context-event-emitter/context-event-emitter.module";
 
 @Module({
     controllers: [DeviceController],
@@ -15,6 +16,7 @@ import { EnvironmentMemoryModule } from "@common/shared-memory/environment-memor
         EnvironmentMemoryModule,
         TypeOrmModule.forFeature([EnvironmentEntity]),
         ConnectionsModule,
+        ContextEventEmitterModule,
     ],
 })
 export class DeviceModule {}

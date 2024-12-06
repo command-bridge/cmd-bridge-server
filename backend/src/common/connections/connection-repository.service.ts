@@ -9,6 +9,7 @@ import { GenericEntity } from "@common/entities/generic-entity.type";
 import { ConnectionConfigService } from "./connection-config.service";
 import { RequestWithPayload } from "@common/auth/jwt-auth.middlewere";
 import { specificDatabaseEngineConfigs } from "@common/helpers/specific-database-engine-configs.helper";
+import { PluginsModule } from "@http/plugins/plugins.module";
 
 export function InjectEnvironmentRepository<T>(entity: GenericEntity<T>) {
     const token = `ENVIRONMENT_REPOSITORY_${entity.name}`;
@@ -55,6 +56,7 @@ export class ConnectionRepositoryService {
         const environmentEntities = [
             ...ENVIRONMENT_ENTITIES,
             ...ENVIRONMENT_MEMORY_ENTITIES,
+            ...PluginsModule.getPluginEntities(),
         ];
 
         const specificDatabaseConfigs = specificDatabaseEngineConfigs(db_type);

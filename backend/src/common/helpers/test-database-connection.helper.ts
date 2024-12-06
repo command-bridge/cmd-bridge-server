@@ -8,6 +8,7 @@ import {
 import { DatabaseSupportedEngines } from "@common/enums/database-supported-engines.enum";
 import { DataSource } from "typeorm";
 import { specificDatabaseEngineConfigs } from "./specific-database-engine-configs.helper";
+import { PluginsModule } from "@http/plugins/plugins.module";
 
 export type DatabaseConnectionOptions = {
     type: DatabaseSupportedEngines;
@@ -39,7 +40,11 @@ export async function testDatabaseConnection(
               synchronize: true,
               entities: !isEnvironment
                   ? [...ADMIN_ENTITIES, ...ADMIN_MEMORY_ENTITIES]
-                  : [...ENVIRONMENT_ENTITIES, ...ENVIRONMENT_MEMORY_ENTITIES],
+                  : [
+                        ...ENVIRONMENT_ENTITIES,
+                        ...ENVIRONMENT_MEMORY_ENTITIES,
+                        ...PluginsModule.getPluginEntities(),
+                    ],
           };
     const engineSpecificParamters = specificDatabaseEngineConfigs(options.type);
 
