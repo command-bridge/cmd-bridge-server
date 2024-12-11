@@ -5,11 +5,26 @@ import {
     OnlineDevicesRepository,
     SubjectMessage,
 } from "@common/shared-memory/environment-memory/repositories/online-devices.memory";
-import { BadRequestException, Injectable, Logger } from "@nestjs/common";
-import { DeviceSubscribeDto } from "./device-events.dto";
+import {
+    BadRequestException,
+    HttpException,
+    HttpStatus,
+    Injectable,
+    Logger,
+} from "@nestjs/common";
+import {
+    DeviceReceiveLogsParam,
+    DeviceSubscribeDto,
+} from "./device-events.dto";
 import { map, Subject } from "rxjs";
 import { RequestWithPayload } from "@common/auth/jwt-auth.middlewere";
 import { DeviceEventsActionSerivce } from "./device-events-actions.service";
+import { randomUUID, UUID } from "crypto";
+import { join } from "path";
+import { existsSync, mkdirSync, unlinkSync, writeFileSync } from "fs";
+import { Response } from "express";
+
+const LOGS_DIR = join(process.env.ASSETS_DIR, "logs");
 
 @Injectable()
 export class DeviceEventsService {
@@ -17,7 +32,7 @@ export class DeviceEventsService {
         private readonly onlineDevicesRepository: OnlineDevicesRepository,
         private readonly environmentConnection: ConnectionRepositoryService,
         private readonly deviceEventsActionService: DeviceEventsActionSerivce,
-    ) {}
+    ) { }
 
     public async subscribe(
         deviceSubscribeDto: DeviceSubscribeDto,
@@ -86,6 +101,55 @@ export class DeviceEventsService {
         });
 
         return true;
+    }
+
+    public requestLogs(id?: number) {
+        const devices = id
+            ? [this.onlineDevicesRepository.get(id)]
+            : this.onlineDevicesRepository.allFromEnvironment();
+
+        const uuid = randomUUID();
+
+        this.sendMessages(devices, {
+            action: "logs",
+            payload: { uuid },
+        });
+
+        return { uuid };
+    }
+
+    public receiveLogs(params: DeviceReceiveLogsParam) {
+
+        if (!existsSync(LOGS_DIR)) {
+            mkdirSync(LOGS_DIR, { recursive: true });
+        }
+
+        const logFilePath = join(LOGS_DIR, `${params.uuid}.log`);
+
+        writeFileSync(logFilePath, params.logs);
+    }
+
+    public downloadLogs(device_id: number, uuid: UUID, res: Response) {
+
+        const logFilePath = join(LOGS_DIR, `${uuid}.log`);
+
+        if (!existsSync(logFilePath)) {
+            throw new HttpException("Log not found", HttpStatus.NOT_FOUND);
+        }
+
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="${uuid}.log"`,
+        );
+        res.setHeader("Content-Type", "text/plain");
+
+        res.sendFile(logFilePath, (err) => {
+            if (err) {
+                console.error("Failed to send file:", err);
+            } else {
+                unlinkSync(logFilePath);
+            }
+        });
     }
 
     private sendMessages(devices: OnlineDevice[], message: SubjectMessage) {

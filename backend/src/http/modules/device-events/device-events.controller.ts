@@ -1,9 +1,11 @@
 import {
     Body,
     Controller,
+    Get,
     Param,
     Post,
     Req,
+    Res,
     Sse,
     UseGuards,
     UsePipes,
@@ -11,12 +13,18 @@ import {
 } from "@nestjs/common";
 import { DeviceEventsService } from "./device-events.service";
 import { UserGuard } from "@http/core/auth/user-guard";
-import { DeviceIdParam, DeviceSubscribeDto } from "./device-events.dto";
+import {
+    DeviceIdParam,
+    DeviceLogDownloadParam,
+    DeviceReceiveLogsParam,
+    DeviceSubscribeDto,
+} from "./device-events.dto";
 import { RequestWithPayload } from "@common/auth/jwt-auth.middlewere";
 import { DeviceGuard } from "@http/core/auth/device.guard";
 import { DeviceEventsActionSerivce } from "./device-events-actions.service";
 import { DeviceEventsPendingMessagesService } from "./device-events-pending-messages.service";
 import { UUID } from "crypto";
+import { Response } from "express";
 
 export interface IPackageMethodResponse {
     success: boolean;
@@ -77,5 +85,29 @@ export class DeviceEventsController {
     @UsePipes(new ValidationPipe({ transform: true }))
     public restart(@Param() param: DeviceIdParam) {
         return this.deviceEventsService.restart(param.device_id);
+    }
+
+    @UseGuards(UserGuard)
+    @Post("/:device_id/logs")
+    @UsePipes(new ValidationPipe({ transform: true }))
+    public requestLogs(@Param() param: DeviceIdParam) {
+        return this.deviceEventsService.requestLogs(param.device_id);
+    }
+
+    @UseGuards(UserGuard)
+    @Get("/:device_id/logs/:uuid")
+    @UsePipes(new ValidationPipe({ transform: true }))
+    public downloadLogs(
+        @Param() { device_id, uuid }: DeviceIdParam & DeviceLogDownloadParam,
+        @Res() res: Response,
+    ) {
+        return this.deviceEventsService.downloadLogs(device_id, uuid, res);
+    }
+
+    @UseGuards(DeviceGuard)
+    @Post("/receive-logs")
+    @UsePipes(new ValidationPipe({ transform: true }))
+    public receiveLogs(@Body() param: DeviceReceiveLogsParam) {
+        return this.deviceEventsService.receiveLogs(param);
     }
 }

@@ -1,4 +1,5 @@
-import { IsNumberString, IsString, MinLength } from "class-validator";
+import { IsNumberString, IsString, IsUUID, MinLength } from "class-validator";
+import { UUID } from "crypto";
 
 export class DeviceSubscribeDto {
     @IsString()
@@ -9,4 +10,17 @@ export class DeviceSubscribeDto {
 export class DeviceIdParam {
     @IsNumberString()
     device_id: number;
+}
+
+export class DeviceLogDownloadParam {
+    @IsUUID()
+    uuid: UUID;
+}
+
+export class DeviceReceiveLogsParam {
+    @IsUUID()
+    uuid: string;
+
+    @IsString()
+    logs: string;
 }

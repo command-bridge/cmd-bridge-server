@@ -2,6 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { join } from "path";
 import { existsSync } from "fs";
 import { Logger } from "@nestjs/common";
+import * as bodyParser from "body-parser";
 
 if (!process.env.ASSETS_DIR) {
     process.env.ASSETS_DIR = join(process.cwd(), "assets");
@@ -53,6 +54,8 @@ async function bootstrap() {
         methods: "GET,POST",
         credentials: true,
     });
+
+    app.use(bodyParser.json({ limit: "50mb" })); // Limite para JSON
 
     await app.listen(process.env.PORT ?? 3000);
 }
