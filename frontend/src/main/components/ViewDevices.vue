@@ -1,13 +1,7 @@
 <template>
   <v-container>
     <h1>Devices</h1>
-    <v-data-table
-      :headers="columns"
-      :items="devices"
-      :items-per-page="5"
-      class="elevation-1"
-      item-value="id"
-    >
+    <v-data-table :headers="columns" :items="devices" :items-per-page="5" class="elevation-1" item-value="id">
       <template #top>
         <v-toolbar flat>
           <v-toolbar-title>Device List</v-toolbar-title>
@@ -39,6 +33,9 @@
             <v-list-item @click="restartDevice(item)">
               <v-list-item-title>Restart</v-list-item-title>
             </v-list-item>
+            <v-list-item @click="requestLogs(item)">
+              <v-list-item-title>Request Logs</v-list-item-title>
+            </v-list-item>
           </v-list>
         </v-menu>
       </template>
@@ -55,6 +52,7 @@
 import { defineComponent, ref, onMounted } from 'vue';
 import api from '@/api';
 import ModalCreateDevice from './ModalCreateDevice.vue';
+import { AxiosError } from 'axios';
 
 export default defineComponent({
   name: 'ViewDevices',
@@ -99,6 +97,17 @@ export default defineComponent({
       }
     };
 
+    const requestLogs = async (device: Record<string, unknown>) => {
+      try {
+        const result = await api.post(`/device-events/${device.id}/logs`);
+
+        pollLogs(device.id as number, result.data.uuid);
+        alert(`Logs requested for device ${device.device_hash}. An download will start when they ready.`);
+      } catch (error) {
+        console.error(`Failed to request logs of device ${device.id}:`, error);
+      }
+    };
+
     const checkUpdatesForAll = async () => {
       try {
         const onlineDevices = devices.value.filter((device) => device.is_online);
@@ -108,6 +117,41 @@ export default defineComponent({
       } catch (error) {
         console.error('Failed to check updates for all devices:', error);
       }
+    };
+
+    const pollLogs = async (deviceId: number, uuid: string) => {
+      const interval = setInterval(async () => {
+        try {
+          // Tenta obter os logs diretamente do endpoint
+          const response = await api.get(`/device-events/${deviceId}/logs/${uuid}`, { responseType: 'blob' });
+
+          // Se o status não for 404, assume que os logs estão prontos
+          clearInterval(interval);
+
+          // Cria um link para download automático
+          const blob = new Blob([response.data], { type: 'text/plain' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = `logs-${uuid}.log`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          alert('Logs downloaded successfully.');
+        } catch (err) {
+
+          const error = err as AxiosError;
+
+          if (error.response && error.response.status === 404) {
+            // Continua tentando se o status for 404 (logs ainda não prontos)
+            console.log('Logs not ready yet. Retrying...');
+          } else {
+            // Interrompe o polling em caso de outros erros
+            clearInterval(interval);
+            console.error('Error fetching logs:', error);
+          }
+        }
+      }, 3000); // Consulta a cada 3 segundos
     };
 
     // Fetch data on component mount
@@ -122,8 +166,8 @@ export default defineComponent({
       checkUpdates,
       restartDevice,
       checkUpdatesForAll,
+      requestLogs,
     };
   },
 });
 </script>
-
