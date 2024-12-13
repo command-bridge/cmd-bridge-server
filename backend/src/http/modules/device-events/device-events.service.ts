@@ -51,19 +51,22 @@ export class DeviceEventsService {
         const onlineDevice = this.onlineDevicesRepository.get(req.payload.id);
 
         if (!onlineDevice || onlineDevice.subject) {
+            Logger.log(
+                `Rejecting ${onlineDevice.environmentId}:${onlineDevice.device.device_hash}. Already connected`,
+                DeviceEventsService.name,
+            );
+
             throw new BadRequestException("Unauthorized access");
         }
 
         onlineDevice.subject = new Subject<SubjectMessage>();
 
         req.on("close", () => {
-            Logger.log(
-                `Client ${onlineDevice.environmentId}:${onlineDevice.device.device_hash} disconnected`,
-                DeviceEventsService.name,
-            );
+            this.handleDisconnect(onlineDevice);
+        });
 
-            onlineDevice.subject.complete();
-            this.onlineDevicesRepository.remove(onlineDevice.device.id);
+        req.socket.on("end", () => {
+            this.handleDisconnect(onlineDevice);
         });
 
         this.deviceEventsActionService.onConnected(onlineDevice);
@@ -77,6 +80,20 @@ export class DeviceEventsService {
         return onlineDevice.subject
             .asObservable()
             .pipe(map((message) => ({ data: message })));
+    }
+
+    private handleDisconnect(onlineDevice: OnlineDevice) {
+        if (!this.onlineDevicesRepository.get(onlineDevice.device.id)) {
+            return;
+        }
+
+        Logger.log(
+            `Client ${onlineDevice.environmentId}:${onlineDevice.device.device_hash} disconnected`,
+            DeviceEventsService.name,
+        );
+
+        onlineDevice.subject.complete();
+        this.onlineDevicesRepository.remove(onlineDevice.device.id);
     }
 
     public checkUpdates(id?: number) {
@@ -119,7 +136,6 @@ export class DeviceEventsService {
     }
 
     public receiveLogs(params: DeviceReceiveLogsParam) {
-
         if (!existsSync(LOGS_DIR)) {
             mkdirSync(LOGS_DIR, { recursive: true });
         }
@@ -130,7 +146,6 @@ export class DeviceEventsService {
     }
 
     public downloadLogs(device_id: number, uuid: UUID, res: Response) {
-
         const logFilePath = join(LOGS_DIR, `${uuid}.log`);
 
         if (!existsSync(logFilePath)) {

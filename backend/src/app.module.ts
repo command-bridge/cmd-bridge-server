@@ -33,7 +33,7 @@ import { ContextEventEmitterModule } from "@http/core/context-event-emitter/cont
             password: process.env.DB_PASSWORD || "password",
             database: process.env.DB_NAME || "your_database",
             entities: [...ADMIN_ENTITIES, ...ADMIN_MEMORY_ENTITIES],
-            synchronize: true, // Use cautiously in production
+            synchronize: true,
             ...specificDatabaseEngineConfigs(
                 (process.env.DB_TYPE as any) || "mysql",
             ),
