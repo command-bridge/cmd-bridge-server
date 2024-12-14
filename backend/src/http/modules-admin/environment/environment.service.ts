@@ -106,7 +106,7 @@ export class EnvironmentService {
         return {
             token: this.jwtService.generateToken({
                 id: id,
-                environment_id: environment_id,
+                environment_id: Number(environment_id),
                 type: JwtTokenType.User,
                 is_admin: true,
             }),
