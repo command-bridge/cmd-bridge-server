@@ -12,6 +12,9 @@ import {
     testDatabaseConnection,
 } from "@common/helpers/test-database-connection.helper";
 import { DatabaseSupportedEngines } from "@common/enums/database-supported-engines.enum";
+import { JwtAuthService } from "@common/auth/jwt-auth.service";
+import { RequestWithPayload } from "@common/auth/jwt-auth.middlewere";
+import { JwtTokenType } from "@common/auth/jwt-token-type.enum";
 
 @Injectable()
 export class EnvironmentService {
@@ -19,6 +22,7 @@ export class EnvironmentService {
         @InjectRepository(EnvironmentEntity)
         private readonly environmentRepository: Repository<EnvironmentEntity>,
         private readonly environmentConnection: ConnectionRepositoryService,
+        private readonly jwtService: JwtAuthService,
     ) {}
 
     public getAll() {
@@ -94,6 +98,19 @@ export class EnvironmentService {
         );
 
         return this.environmentRepository.save(created);
+    }
+
+    public async use(environment_id: number, req: RequestWithPayload) {
+        const { id } = req.payload;
+
+        return {
+            token: this.jwtService.generateToken({
+                id: id,
+                environment_id: environment_id,
+                type: JwtTokenType.User,
+                is_admin: true,
+            }),
+        };
     }
 
     private async createEnvironmentDatabase(

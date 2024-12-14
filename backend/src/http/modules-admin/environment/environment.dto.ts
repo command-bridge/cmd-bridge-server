@@ -4,6 +4,8 @@ import {
     IsBoolean,
     IsEnum,
     IsNotEmpty,
+    IsNumber,
+    IsNumberString,
     IsString,
     IsUrl,
     ValidateIf,
@@ -36,4 +38,9 @@ export class EnvironmentCreateDto {
     @IsNotEmpty()
     @ValidateIf((o) => o.ENVIRONMENT_USE_DEFAULT_DB_CREDENTIALS === false)
     db_password: string;
+}
+
+export class EnvironmentUseDto {
+    @IsNumberString()
+    environment_id: number;
 }
