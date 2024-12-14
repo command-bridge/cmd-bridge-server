@@ -16,9 +16,26 @@
           <v-btn color="success" @click="openCreateModal">Create New</v-btn>
         </v-toolbar>
       </template>
+
+      <!-- Render db_port column -->
       <template #item.db_port="{ item }">
-        <!-- Handle nullable db_port -->
         {{ item.db_port || 'N/A' }}
+      </template>
+
+      <!-- Render actions column -->
+      <template #item.actions="{ item }">
+        <v-menu bottom left>
+          <template #activator="{ props }">
+            <v-btn v-bind="props" icon>
+              <v-icon>mdi-dots-vertical</v-icon>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item @click="useEnvironment(item)">
+              <v-list-item-title>Use this</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
       </template>
     </v-data-table>
 
@@ -32,16 +49,18 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, getCurrentInstance, ref } from 'vue';
 import api from '@/api';
 import ModalEnvironment from './ModalEnvironment.vue';
+import authStore from '../stores/auth.store';
 
 export default defineComponent({
   name: 'ViewEnvironments',
   components: {
-    ModalEnvironment
+    ModalEnvironment,
   },
   setup() {
+    const instance = getCurrentInstance();
     const isEnvironmentModalOpen = ref(false);
     const selectedEnvironment = ref({});
     const modalMode = ref('create');
@@ -55,6 +74,7 @@ export default defineComponent({
       { title: 'Port', key: 'db_port' },
       { title: 'Type', key: 'db_type' },
       { title: 'Database', key: 'db_database' },
+      { title: 'Actions', key: 'actions', sortable: false }, // Add actions column
     ]);
 
     const openCreateModal = () => {
@@ -74,6 +94,24 @@ export default defineComponent({
       }
     };
 
+    // Handle the "Use this" action
+    const useEnvironment = async (item: Record<string, string>) => {
+      try {
+        const response = await api.get(`/admin/environment/${item.id}/use`);
+
+        const { token } = response.data;
+
+        authStore.setToken(token);
+
+        instance?.appContext.config.globalProperties.$alert({
+          title: 'Environment changed',
+          message: `Now you navigating in ${item.name} environment!`,
+        });
+      } catch (error) {
+        console.error('Failed to use environment:', error);
+      }
+    };
+
     // Initial fetch
     fetchEnvironments();
 
@@ -85,11 +123,8 @@ export default defineComponent({
       environments,
       headers,
       fetchEnvironments,
+      useEnvironment,
     };
   },
 });
 </script>
-
-<style scoped>
-/* Add any custom styles if needed */
-</style>
