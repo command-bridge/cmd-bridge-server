@@ -48,10 +48,13 @@ export class DeviceService {
 
         const token = generateIntegrationToken();
 
-        const device = {
-            device_hash: deviceActivationDto.device_hash,
-            integration_token: token.hash,
-        } as DeviceEntity;
+        const device =
+            (await deviceRepository.findOne({
+                where: { device_hash: deviceActivationDto.device_hash },
+            })) || ({} as DeviceEntity);
+
+        device.device_hash = deviceActivationDto.device_hash;
+        device.integration_token = token.hash;
 
         await deviceRepository.save(device);
 
@@ -105,11 +108,12 @@ export class DeviceService {
                 .slice(0, 5)
                 .concat("...");
 
-            device["is_online"] = this.onlineDevicesRepository.get(
-                device.id.toString(),
-            )
-                ? true
-                : false;
+            const onlineDevice = this.onlineDevicesRepository.get(device.id);
+
+            device["is_online"] = onlineDevice ? true : false;
+
+            if (device["is_online"])
+                device["version"] = onlineDevice.clientVersion;
 
             return device;
         });
@@ -125,6 +129,7 @@ export class DeviceService {
         );
 
         columns.push({ key: "is_online", title: "Online?" });
+        columns.push({ key: "version", title: "Version" });
         columns.push({ key: "actions", title: "Actions", align: "end" } as any);
 
         return {
