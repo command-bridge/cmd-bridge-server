@@ -4,6 +4,7 @@ import { MemoryRepository } from "../../memory-repository.class";
 import { Subject } from "rxjs";
 import { REQUEST } from "@nestjs/core";
 import { RequestWithPayload } from "@common/auth/jwt-auth.middlewere";
+import { EntityTarget } from "typeorm";
 
 export interface SubjectMessage {
     action: string;
@@ -16,6 +17,7 @@ export interface OnlineDevice {
     lastLogin: Date;
     clientVersion: string;
     subject?: Subject<SubjectMessage>;
+    entityMap: Map<EntityTarget<any>, any>;
 }
 
 @Injectable()

@@ -32,7 +32,7 @@ export class DeviceEventsService {
         private readonly onlineDevicesRepository: OnlineDevicesRepository,
         private readonly environmentConnection: ConnectionRepositoryService,
         private readonly deviceEventsActionService: DeviceEventsActionSerivce,
-    ) { }
+    ) {}
 
     public async subscribe(
         deviceSubscribeDto: DeviceSubscribeDto,
@@ -196,6 +196,7 @@ export class DeviceEventsService {
             clientVersion,
             lastLogin: new Date(),
             environmentId,
+            entityMap: new Map(),
         } as OnlineDevice;
 
         this.onlineDevicesRepository.add(id, onlineDevice);

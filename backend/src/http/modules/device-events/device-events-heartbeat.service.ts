@@ -4,12 +4,15 @@ import { Injectable, Logger } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import { DeviceEventsEmitters } from "./device-events-emitters.enum";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
 @Injectable()
 export class DeviceEventsHeartbeatService {
     constructor(
         @InjectRepository(EnvironmentEntity)
         private readonly environmentRepository: Repository<EnvironmentEntity>,
+        private readonly eventEmitter: EventEmitter2,
     ) {}
 
     @Cron("*/15 * * * * *")
@@ -47,6 +50,8 @@ export class DeviceEventsHeartbeatService {
                 action: "heartbeat",
                 payload: { timestamp },
             });
+
+            this.eventEmitter.emit(DeviceEventsEmitters.Heartbeat, device);
         }
     }
 }
