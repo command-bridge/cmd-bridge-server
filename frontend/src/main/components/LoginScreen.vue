@@ -7,7 +7,7 @@
         <v-alert
           v-if="errorMessage"
           type="error"
-          border="left"
+          border="start"
           prominent
           class="mb-4"
         >
@@ -38,17 +38,19 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
+import { useRouter } from 'vue-router'; // Import useRouter for navigation
 import api from '@/api';
 import { AxiosError } from 'axios';
 import authStore from '../stores/auth.store';
 
 export default defineComponent({
   name: 'LoginScreen',
-  emits: ['authenticated'],
-  setup(_, { emit }) {
+  setup() {
     const username = ref<string>('');
     const password = ref<string>('');
     const errorMessage = ref<string | null>(null); // Error message state
+
+    const router = useRouter(); // Initialize the Vue Router instance
 
     const handleLogin = async () => {
       try {
@@ -60,14 +62,22 @@ export default defineComponent({
 
         const { token } = result.data;
 
+        // Save the token to the store
         authStore.setToken(token);
 
-        // Emit the authenticated event
-        emit('authenticated');
+        // Redirect to the Dashboard
+        router.push({ name: 'Dashboard' });
       } catch (error) {
         // Display a user-friendly error message
-        if (error instanceof AxiosError && error.response && [400, 401].includes(error.response.status)) {
-          errorMessage.value = (error.response.data.message && typeof(error.response.data.message) === 'string') ? error.response.data.message : error.response.data.message[0];
+        if (
+          error instanceof AxiosError &&
+          error.response &&
+          [400, 401].includes(error.response.status)
+        ) {
+          errorMessage.value =
+            typeof error.response.data.message === 'string'
+              ? error.response.data.message
+              : error.response.data.message[0];
         } else {
           errorMessage.value = 'An unexpected error occurred. Please try later.';
         }

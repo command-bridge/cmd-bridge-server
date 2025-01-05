@@ -14,8 +14,12 @@
     "lib": ["ESNext", "DOM"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
-    }    
+      "@/*": ["src/*"],
+      "@components/*": ["src/main/components/*"],
+      "@layouts/*": ["src/main/layouts/*"],
+      "@stores/*": ["src/main/stores/*"],
+      "@plugins/*": ["src/main/plugins/*"]
+    }
   },
   "include": [
     "src/**/*.ts",

@@ -2,7 +2,6 @@ import axios, { AxiosError } from 'axios';
 
 const api = axios.create({
   baseURL: process.env.SERVER_BACKEND_URL || 'http://localhost:3000', // Use an environment variable for the base URL
-  timeout: 10000, // Set a timeout for requests
   headers: {
     'Content-Type': 'application/json',
   },
