@@ -36,6 +36,15 @@
             <v-list-item @click="requestLogs(item)">
               <v-list-item-title>Request Logs</v-list-item-title>
             </v-list-item>
+            <v-list-item
+              v-for="(action, index) in pluginActions"
+              :key="index"
+              @click="action.callback(item)"
+            >
+              <v-list-item-title>
+                {{ action.label }}
+              </v-list-item-title>
+            </v-list-item>                      
           </v-list>
         </v-menu>
       </template>
@@ -46,13 +55,12 @@
   </v-container>
 </template>
 
-
-
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref, onMounted, computed } from 'vue';
 import api from '@/api';
 import ModalCreateDevice from './ModalCreateDevice.vue';
 import { AxiosError } from 'axios';
+import { getDeviceActions } from '@plugins/device-actions-plugin';
 
 export default defineComponent({
   name: 'ViewDevices',
@@ -63,6 +71,7 @@ export default defineComponent({
     const columns = ref([]);
     const devices = ref<Record<string, unknown>[]>([]);
     const isCreateDeviceModalOpen = ref(false);
+    const pluginActions = computed(() => getDeviceActions());
 
     // Fetch data and columns from the backend
     const fetchTableData = async () => {
@@ -167,6 +176,7 @@ export default defineComponent({
       restartDevice,
       checkUpdatesForAll,
       requestLogs,
+      pluginActions,
     };
   },
 });
