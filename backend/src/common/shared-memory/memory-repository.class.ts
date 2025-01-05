@@ -1,7 +1,7 @@
 export abstract class MemoryRepository<T> {
     private storage = new Map<string, T>();
 
-    constructor(private readonly environmentId: number) {}
+    constructor(private readonly environmentId?: number) {}
 
     add(key: string | number, value: T): void {
         this.storage.set(this.parseKey(key), value);
@@ -33,6 +33,11 @@ export abstract class MemoryRepository<T> {
 
     private parseKey(key: string | number) {
         const environmentId = this.environmentId;
+
+        if (!environmentId) {
+            return key.toString();
+        }
+
         if (typeof key === "number") key = key.toString();
 
         return `${environmentId}:${key}`;

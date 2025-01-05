@@ -1,3 +1,7 @@
+export type CronControl = {
+    getElaspedTimeMs: () => string;
+};
+
 export function dateIsOlderThanHours(date: Date, hours: number) {
     const now = new Date();
     const twentyFourHoursAgo = new Date(now.getTime() - hours * 60 * 60 * 1000);
@@ -12,7 +16,7 @@ function dateStopCron(begin: [number, number]) {
     return `${elapsedMilliseconds}ms`;
 }
 
-export function dateStartCron() {
+export function dateStartCron(): CronControl {
     const begin = process.hrtime();
 
     return {
