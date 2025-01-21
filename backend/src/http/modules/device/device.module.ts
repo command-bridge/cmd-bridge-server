@@ -7,10 +7,11 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { EnvironmentEntity } from "@common/entities/admin/environment.entity";
 import { EnvironmentMemoryModule } from "@common/shared-memory/environment-memory/environment-memory.module";
 import { ContextEventEmitterModule } from "@http/core/context-event-emitter/context-event-emitter.module";
+import { DeviceRepository } from "./device.repository";
 
 @Module({
     controllers: [DeviceController],
-    providers: [DeviceService],
+    providers: [DeviceService, DeviceRepository],
     imports: [
         SharedMemoryModule,
         EnvironmentMemoryModule,

@@ -10,10 +10,7 @@ import { Repository } from "typeorm";
 import { EnvironmentEntity } from "@common/entities/admin/environment.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { JwtTokenType } from "@common/auth/jwt-token-type.enum";
-import { OnlineDevicesRepository } from "@common/shared-memory/environment-memory/repositories/online-devices.memory";
-import { getDataGridColumns } from "@common/decorators/datagrid.decorator";
-import { DeviceEmitters } from "./device-emitters.enum";
-import { ContextEventEmitterService } from "@http/core/context-event-emitter/context-event-emitter.service";
+import { DeviceRepository } from "./device.repository";
 
 @Injectable()
 export class DeviceService {
@@ -23,9 +20,7 @@ export class DeviceService {
         @InjectRepository(EnvironmentEntity)
         private readonly environmentRepository: Repository<EnvironmentEntity>,
         private readonly jwtAuthService: JwtAuthService,
-        private readonly environmentConnection: ConnectionRepositoryService,
-        private readonly onlineDevicesRepository: OnlineDevicesRepository,
-        private readonly contextEventEmitterService: ContextEventEmitterService,
+        private readonly deviceRepository: DeviceRepository,
     ) {}
 
     public async activate(deviceActivationDto: DeviceActivationDto) {
@@ -100,41 +95,11 @@ export class DeviceService {
         };
     }
 
+    public async getOne(id: number) {
+        return this.deviceRepository.getOne(id);
+    }
+
     public async getAll() {
-        const repository =
-            await this.environmentConnection.getRepository(DeviceEntity);
-        const devices = (await repository.find()).map((device) => {
-            device.integration_token = device.integration_token
-                .slice(0, 5)
-                .concat("...");
-
-            const onlineDevice = this.onlineDevicesRepository.get(device.id);
-
-            device["is_online"] = onlineDevice ? true : false;
-
-            if (device["is_online"])
-                device["version"] = onlineDevice.clientVersion;
-
-            return device;
-        });
-
-        const columns = getDataGridColumns(DeviceEntity);
-
-        await this.contextEventEmitterService.emitAsync(
-            DeviceEmitters.FindAllDevices,
-            {
-                columns,
-                devices,
-            },
-        );
-
-        columns.push({ key: "is_online", title: "Online?" });
-        columns.push({ key: "version", title: "Version" });
-        columns.push({ key: "actions", title: "Actions", align: "end" } as any);
-
-        return {
-            columns,
-            data: devices,
-        };
+        return this.deviceRepository.getAll();
     }
 }

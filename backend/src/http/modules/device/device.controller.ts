@@ -2,6 +2,7 @@ import {
     Body,
     Controller,
     Get,
+    Param,
     Post,
     UseGuards,
     UsePipes,
@@ -10,6 +11,7 @@ import {
 import { DeviceActivationDto, DeviceLoginDto } from "./device.dto";
 import { DeviceService } from "./device.service";
 import { UserGuard } from "@http/core/auth/user-guard";
+import { DeviceIdParam } from "../device-events/device-events.dto";
 
 @Controller("device")
 export class DeviceController {
@@ -37,5 +39,12 @@ export class DeviceController {
     @UseGuards(UserGuard)
     public getAll() {
         return this.deviceService.getAll();
+    }
+
+    @Get("/:device_id")
+    @UseGuards(UserGuard)
+    @UsePipes(new ValidationPipe({ transform: true }))
+    public getOne(@Param() param: DeviceIdParam) {
+        return this.deviceService.getOne(param.device_id);
     }
 }
