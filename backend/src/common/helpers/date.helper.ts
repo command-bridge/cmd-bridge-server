@@ -9,6 +9,13 @@ export function dateIsOlderThanHours(date: Date, hours: number) {
     return date < twentyFourHoursAgo;
 }
 
+export function dateIsOlderThanMinutes(date: Date, minutes: number) {
+    const now = new Date();
+    const minutesAgo = new Date(now.getTime() - minutes * 60 * 1000);
+
+    return date < minutesAgo;
+}
+
 function dateStopCron(begin: [number, number]) {
     const elapsedTime = process.hrtime(begin);
     const elapsedMilliseconds = elapsedTime[0] * 1000 + elapsedTime[1] / 1e6;
