@@ -12,6 +12,8 @@ export class PluginsModule {
      * Registra uma entidade vinda de um plugin.
      */
     static registerPluginEntity(entity: Function): void {
+        Logger.log(`Registering entities ${entity.name}`, PluginsModule.name);
+
         this.pluginEntities.push(entity);
     }
 
@@ -19,11 +21,6 @@ export class PluginsModule {
      * Retorna as entidades registradas pelos plugins.
      */
     static getPluginEntities(): Function[] {
-        Logger.log(
-            `Discovered entities ${this.pluginEntities.length}`,
-            PluginsModule.name,
-        );
-
         return this.pluginEntities;
     }
 
