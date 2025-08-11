@@ -25,7 +25,7 @@ export function randomString(
 
     // Dynamically build the character pool based on the mode
     const chars = Object.entries(mode)
-        .filter(([key, isEnabled]) => isEnabled)
+        .filter(([, isEnabled]) => isEnabled)
         .map(([key]) => charSets[key as keyof RandomStringMode])
         .join("");
 

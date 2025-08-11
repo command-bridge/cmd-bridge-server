@@ -4,7 +4,6 @@ import {
     IsBoolean,
     IsEnum,
     IsNotEmpty,
-    IsNumber,
     IsNumberString,
     IsString,
     IsUrl,

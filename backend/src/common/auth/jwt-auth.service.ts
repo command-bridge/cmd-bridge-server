@@ -13,7 +13,7 @@ export class JwtAuthService {
     validateToken(token: string) {
         try {
             return this.jwtService.verify<JwtTokenPayloadDto>(token);
-        } catch (e) {
+        } catch {
             throw new UnauthorizedException("Invalid token");
         }
     }

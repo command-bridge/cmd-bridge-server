@@ -5,14 +5,14 @@ import {
 } from "class-validator";
 
 export function IsValidName(validationOptions?: ValidationOptions) {
-    return function (object: Object, propertyName: string) {
+    return function (object: object, propertyName: string) {
         registerDecorator({
             name: "isValidName",
             target: object.constructor,
             propertyName: propertyName,
             options: validationOptions,
             validator: {
-                validate(value: any, args: ValidationArguments) {
+                validate(value: any) {
                     const nameRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ'’\- ]{2,50}$/;
                     return (
                         typeof value === "string" &&

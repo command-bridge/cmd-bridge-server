@@ -2,7 +2,6 @@ import { IsValidName } from "@common/decorators/custom-class-validators/is-valid
 import { DatabaseSupportedEngines } from "@common/enums/database-supported-engines.enum";
 import { SharedMemoryEngine } from "@common/shared-memory/shared-memory.enum";
 import {
-    IsAlphanumeric,
     IsBoolean,
     IsEmail,
     IsEnum,
