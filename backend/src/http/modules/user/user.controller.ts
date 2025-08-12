@@ -17,4 +17,9 @@ export class UserController {
     public login(@Body() userLoginDto: UserLoginDto) {
         return this.userService.login(userLoginDto);
     }
+
+    @Post("refresh")
+    public refreshToken(@Body() body: { refreshToken: string }) {
+        return this.userService.refreshToken(body.refreshToken);
+    }
 }

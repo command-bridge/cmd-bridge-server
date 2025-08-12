@@ -50,7 +50,7 @@ const router = createRouter({
 // Global navigation guard for authentication and admin validation
 router.beforeEach(async (to, from, next) => {
   const authStore = await import('@stores/auth.store'); // Import store dynamically
-  const isAuthenticated = !!localStorage.getItem('authToken');
+  const isAuthenticated = authStore.default.isAuthenticated();
 
   // Handle routes that require authentication
   if (to.meta.requiresAuth && !isAuthenticated) {

@@ -29,7 +29,6 @@ import { getMenuItems } from '../plugins/menu-item-plugin';
       });
   
       const handleLogout = () => {
-        localStorage.removeItem('authToken');
         authStore.clearToken();
         window.location.href = '/login'; // Redirect to login
       };

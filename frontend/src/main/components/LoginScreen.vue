@@ -15,12 +15,15 @@
         </v-alert>
 
         <!-- Login Form -->
-        <v-form @submit.prevent="handleLogin">
+        <form @submit.prevent="handleLogin" name="loginForm" method="post">
           <v-text-field
             v-model="username"
             label="Username"
             outlined
             required
+            autocomplete="username"
+            name="username"
+            id="username"
           />
           <v-text-field
             v-model="password"
@@ -28,16 +31,29 @@
             outlined
             type="password"
             required
+            autocomplete="current-password"
+            name="password"
+            id="password"
           />
+          
+          <!-- Keep connected checkbox -->
+          <v-checkbox
+            v-model="keepConnected"
+            label="Manter conectado"
+            color="primary"
+            hide-details
+            class="mb-4"
+          />
+          
           <v-btn type="submit" color="primary" block>Login</v-btn>
-        </v-form>
+        </form>
       </v-card-text>
     </v-card>
   </v-container>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router'; // Import useRouter for navigation
 import api from '@/api';
 import { AxiosError } from 'axios';
@@ -48,9 +64,19 @@ export default defineComponent({
   setup() {
     const username = ref<string>('');
     const password = ref<string>('');
+    const keepConnected = ref<boolean>(false);
     const errorMessage = ref<string | null>(null); // Error message state
 
     const router = useRouter(); // Initialize the Vue Router instance
+
+    // Load saved credentials on component mount
+    onMounted(() => {
+      const savedKeepConnected = localStorage.getItem('keepConnected');
+      
+      if (savedKeepConnected) {
+        keepConnected.value = JSON.parse(savedKeepConnected);
+      }
+    });
 
     const handleLogin = async () => {
       try {
@@ -58,12 +84,34 @@ export default defineComponent({
         const result = await api.post('/user/login', {
           user_name: username.value,
           password: password.value,
+          keepConnected: keepConnected.value,
         });
 
-        const { token } = result.data;
+        const { token, refreshToken } = result.data;
 
-        // Save the token to the store
-        authStore.setToken(token);
+        // Debug: Show new token info
+        try {
+          const decoded = authStore.state.decodedToken || JSON.parse(atob(token.split('.')[1]));
+          const currentTime = Math.floor(Date.now() / 1000);
+          const expiresIn = decoded.exp - currentTime;
+          console.log('New token received:', {
+            expiresIn: `${Math.floor(expiresIn / 3600)}h ${Math.floor((expiresIn % 3600) / 60)}m`,
+            expiresAt: new Date(decoded.exp * 1000).toLocaleString(),
+            hasRefreshToken: !!refreshToken
+          });
+        } catch (e) {
+          console.log('Error decoding new token:', e);
+        }
+
+        // Save keep connected preference
+        localStorage.setItem('keepConnected', JSON.stringify(keepConnected.value));
+
+        // Save the tokens to the store with keep connected info
+        if (refreshToken) {
+          authStore.setTokens(token, refreshToken, keepConnected.value);
+        } else {
+          authStore.setToken(token, keepConnected.value);
+        }
 
         // Redirect to the Dashboard
         router.push({ name: 'Dashboard' });
@@ -88,6 +136,7 @@ export default defineComponent({
     return {
       username,
       password,
+      keepConnected,
       errorMessage,
       handleLogin,
     };

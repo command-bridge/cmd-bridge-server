@@ -15,10 +15,10 @@ export class UserService {
     ) {}
 
     public async login(userLoginDto: UserLoginDto) {
-        const { user_name, password } = userLoginDto;
+        const { user_name, password, keepConnected } = userLoginDto;
 
         const user = await this.userRepository.findOne({
-            select: ["password", "environment_id", "is_admin"],
+            select: ["id", "password", "environment_id", "is_admin"],
             where: { user_name },
         });
 
@@ -26,13 +26,56 @@ export class UserService {
             throw new UnauthorizedException("Invalid username or password");
         }
 
-        return {
-            token: this.jwtService.generateToken({
+        const payload = {
+            id: user.id,
+            environment_id: user.environment_id,
+            is_admin: user.is_admin,
+        };
+
+        // If keepConnected is requested, provide refresh token
+        if (keepConnected) {
+            const { accessToken, refreshToken } = this.jwtService.generateTokenPair(payload);
+            return {
+                token: accessToken,
+                refreshToken,
+            };
+        } else {
+            // Regular login - just access token (12h, compatible with Electron)
+            const token = this.jwtService.generateToken({
+                ...payload,
+                type: JwtTokenType.User,
+            });
+            return { token };
+        }
+    }
+
+    public async refreshToken(refreshToken: string) {
+        try {
+            const decoded = this.jwtService.validateToken(refreshToken);
+            
+            if (decoded.type !== "refresh") {
+                throw new UnauthorizedException("Invalid refresh token");
+            }
+
+            // Get fresh user data
+            const user = await this.userRepository.findOne({
+                select: ["id", "environment_id", "is_admin"],
+                where: { id: decoded.id },
+            });
+
+            if (!user) {
+                throw new UnauthorizedException("User not found");
+            }
+
+            const newAccessToken = this.jwtService.refreshAccessToken(refreshToken, {
                 id: user.id,
                 environment_id: user.environment_id,
-                type: JwtTokenType.User,
                 is_admin: user.is_admin,
-            }),
-        };
+            });
+
+            return { token: newAccessToken };
+        } catch {
+            throw new UnauthorizedException("Invalid refresh token");
+        }
     }
 }

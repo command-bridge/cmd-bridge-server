@@ -7,7 +7,8 @@ import { vuetify } from './vuetify';
 import router from './router';
 
 async function initializeApp() {
-    authStore.loadTokenFromStorage(); // Ensure store is initialized before starting app
+    // Load token from storage and verify its validity
+    authStore.loadTokenFromStorage(); 
   
     const app = createApp(App);
     app.use(router); // Register Vue Router
