@@ -1,18 +1,36 @@
 <template>
   <v-container>
     <h1>Devices</h1>
-    <v-data-table :headers="columns" :items="devices" :items-per-page="5" class="elevation-1" item-value="id">
+    <v-data-table
+      :headers="columns"
+      :items="filteredDevices"
+      :items-per-page="9999"
+      class="elevation-1"
+      item-value="id"
+    >
+      <template #bottom></template>
       <template #top>
         <v-toolbar flat>
           <v-toolbar-title>Device List</v-toolbar-title>
           <v-spacer />
+          <v-text-field
+            v-model="searchFilter"
+            prepend-inner-icon="mdi-magnify"
+            label="Filter by any column"
+            single-line
+            hide-details
+            clearable
+            density="compact"
+            class="filter-field"
+            style="max-width: 280px;"
+          />
           <v-btn color="primary" @click="fetchTableData">Refresh</v-btn>
           <v-btn color="success" @click="openCreateDeviceModal">Create New</v-btn>
-          <v-btn color="info" @click="checkUpdatesForAll">Check Updates for All</v-btn>
+          <v-btn color="info" @click="openConfirmCheckUpdatesAll">Check Updates for All</v-btn>
         </v-toolbar>
       </template>
 
-      <!-- Colunas personalizadas -->
+      <!-- Custom columns -->
       <template #item.is_online="{ item }">
         <v-icon :color="item.is_online ? 'green' : 'red'">
           {{ item.is_online ? 'mdi-checkbox-marked-circle' : 'mdi-close-circle' }}
@@ -44,7 +62,7 @@
               <v-list-item-title>
                 {{ action.label }}
               </v-list-item-title>
-            </v-list-item>                      
+            </v-list-item>
           </v-list>
         </v-menu>
       </template>
@@ -52,6 +70,55 @@
 
     <!-- Create Device Modal -->
     <ModalCreateDevice v-model:isOpen="isCreateDeviceModalOpen" />
+
+    <!-- Confirm Check Updates for All -->
+    <v-dialog v-model="showConfirmCheckUpdatesAll" persistent max-width="420">
+      <v-card>
+        <v-card-title class="text-h6">Check updates for all devices?</v-card-title>
+        <v-card-text>
+          This will send an update check request to every device that is currently online.
+          Do you want to continue?
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn color="grey" variant="text" @click="showConfirmCheckUpdatesAll = false">Cancel</v-btn>
+          <v-btn color="primary" variant="text" @click="confirmCheckUpdatesForAll">Confirm</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Check Updates Progress Modal -->
+    <v-dialog v-model="showCheckUpdatesProgress" persistent max-width="560" scrollable>
+      <v-card>
+        <v-card-title class="text-h6">Check updates – progress</v-card-title>
+        <v-card-text class="pa-0">
+          <v-list v-if="checkUpdatesProgressList.length > 0" density="compact">
+            <v-list-item
+              v-for="entry in checkUpdatesProgressList"
+              :key="String(entry.device.id)"
+              class="check-updates-progress-item"
+            >
+              <template #prepend>
+                <v-icon v-if="entry.status === 'pending'" color="grey" size="small" class="mr-2">mdi-clock-outline</v-icon>
+                <v-icon v-else-if="entry.status === 'success'" color="success" size="small" class="mr-2">mdi-check-circle</v-icon>
+                <v-icon v-else color="error" size="small" class="mr-2">mdi-close-circle</v-icon>
+              </template>
+              <v-list-item-title>{{ entry.device.device_hash ?? entry.device.id }}</v-list-item-title>
+              <v-list-item-subtitle>
+                <span v-if="entry.status === 'pending'">Waiting…</span>
+                <span v-else-if="entry.status === 'success'">Update check sent</span>
+                <span v-else>Failed</span>
+              </v-list-item-subtitle>
+            </v-list-item>
+          </v-list>
+          <p v-else class="pa-4 text-medium-emphasis">No online devices to check.</p>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn color="primary" variant="text" @click="closeCheckUpdatesProgress">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -70,13 +137,27 @@ export default defineComponent({
   setup() {
     const columns = ref([]);
     const devices = ref<Record<string, unknown>[]>([]);
+    const searchFilter = ref('');
     const isCreateDeviceModalOpen = ref(false);
+    const showConfirmCheckUpdatesAll = ref(false);
+    const showCheckUpdatesProgress = ref(false);
+    type UpdateStatus = 'pending' | 'success' | 'failed';
+    const checkUpdatesProgressList = ref<{ device: Record<string, unknown>; status: UpdateStatus }[]>([]);
     const pluginActions = computed(() => getDeviceActions());
 
-    // Fetch data and columns from the backend
+    const filteredDevices = computed(() => {
+      const q = searchFilter.value.trim().toLowerCase();
+      if (!q) return devices.value;
+      return devices.value.filter((item) =>
+        Object.values(item).some((val) =>
+          String(val ?? '').toLowerCase().includes(q)
+        )
+      );
+    });
+
     const fetchTableData = async () => {
       try {
-        const response = await api.get('/device'); // Backend retorna colunas e dados
+        const response = await api.get('/device');
         columns.value = response.data.columns;
         devices.value = response.data.data;
       } catch (error) {
@@ -88,12 +169,16 @@ export default defineComponent({
       isCreateDeviceModalOpen.value = true;
     };
 
-    const checkUpdates = async (device: Record<string, unknown>) => {
+    const checkUpdates = async (device: Record<string, unknown>, options?: { silent?: boolean }) => {
       try {
         await api.post(`/device-events/${device.id}/check-updates`);
-        alert(`Update check initiated for device ${device.device_hash}`);
+        if (!options?.silent) {
+          alert(`Update check initiated for device ${device.device_hash}`);
+        }
+        return true;
       } catch (error) {
         console.error(`Failed to check updates for device ${device.id}:`, error);
+        return false;
       }
     };
 
@@ -109,35 +194,48 @@ export default defineComponent({
     const requestLogs = async (device: Record<string, unknown>) => {
       try {
         const result = await api.post(`/device-events/${device.id}/logs`);
-
         pollLogs(device.id as number, result.data.uuid);
-        alert(`Logs requested for device ${device.device_hash}. An download will start when they ready.`);
+        alert(`Logs requested for device ${device.device_hash}. A download will start when ready.`);
       } catch (error) {
         console.error(`Failed to request logs of device ${device.id}:`, error);
       }
     };
 
-    const checkUpdatesForAll = async () => {
-      try {
-        const onlineDevices = devices.value.filter((device) => device.is_online);
-        for (const device of onlineDevices) {
-          await checkUpdates(device);
-        }
-      } catch (error) {
-        console.error('Failed to check updates for all devices:', error);
+    const openConfirmCheckUpdatesAll = () => {
+      showConfirmCheckUpdatesAll.value = true;
+    };
+
+    const confirmCheckUpdatesForAll = async () => {
+      showConfirmCheckUpdatesAll.value = false;
+      const onlineDevices = devices.value.filter((d) => d.is_online);
+      if (onlineDevices.length === 0) {
+        checkUpdatesProgressList.value = [];
+        showCheckUpdatesProgress.value = true;
+        return;
       }
+      checkUpdatesProgressList.value = onlineDevices.map((device) => ({
+        device,
+        status: 'pending' as UpdateStatus,
+      }));
+      showCheckUpdatesProgress.value = true;
+      for (let i = 0; i < checkUpdatesProgressList.value.length; i++) {
+        const entry = checkUpdatesProgressList.value[i];
+        const ok = await checkUpdates(entry.device, { silent: true });
+        entry.status = ok ? 'success' : 'failed';
+        checkUpdatesProgressList.value = [...checkUpdatesProgressList.value];
+      }
+    };
+
+    const closeCheckUpdatesProgress = () => {
+      showCheckUpdatesProgress.value = false;
+      checkUpdatesProgressList.value = [];
     };
 
     const pollLogs = async (deviceId: number, uuid: string) => {
       const interval = setInterval(async () => {
         try {
-          // Tenta obter os logs diretamente do endpoint
           const response = await api.get(`/device-events/${deviceId}/logs/${uuid}`, { responseType: 'blob' });
-
-          // Se o status não for 404, assume que os logs estão prontos
           clearInterval(interval);
-
-          // Cria um link para download automático
           const blob = new Blob([response.data], { type: 'text/plain' });
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
@@ -145,38 +243,39 @@ export default defineComponent({
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-
           alert('Logs downloaded successfully.');
         } catch (err) {
-
           const error = err as AxiosError;
-
           if (error.response && error.response.status === 404) {
-            // Continua tentando se o status for 404 (logs ainda não prontos)
             console.log('Logs not ready yet. Retrying...');
           } else {
-            // Interrompe o polling em caso de outros erros
             clearInterval(interval);
             console.error('Error fetching logs:', error);
           }
         }
-      }, 3000); // Consulta a cada 3 segundos
+      }, 3000);
     };
 
-    // Fetch data on component mount
     onMounted(fetchTableData);
 
     return {
       columns,
       devices,
+      searchFilter,
+      filteredDevices,
       isCreateDeviceModalOpen,
       openCreateDeviceModal,
       fetchTableData,
       checkUpdates,
       restartDevice,
-      checkUpdatesForAll,
+      openConfirmCheckUpdatesAll,
+      confirmCheckUpdatesForAll,
       requestLogs,
       pluginActions,
+      showConfirmCheckUpdatesAll,
+      showCheckUpdatesProgress,
+      checkUpdatesProgressList,
+      closeCheckUpdatesProgress,
     };
   },
 });
